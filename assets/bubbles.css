@@ -92,13 +92,19 @@
   color: var(--ll-on-tertiary, var(--ll-on-brand)) !important;
 }
 
-/* ── 3. 时间：气泡内部右下角 ── */
+/* ── 3. 时间：气泡内部右下角 ──
+ * 不能用 float：时间会占掉右侧一列，引用/长文本被挤窄甚至截断。
+ * 改成绝对定位，气泡底部预留一行给时间。 */
 .msg-content-container [class*="msg-time"],
 .msg-content-container [class*="message-time"],
 .msg-content-container [class*="timestamp"],
 .msg-content-container .msg-time {
   display: inline-block !important;
-  margin: 2px 0 0 auto !important;
+  position: absolute !important;
+  right: 10px !important;
+  bottom: 5px !important;
+  z-index: 1 !important;
+  margin: 0 !important;
   padding: 0 !important;
   font-size: 10px !important;
   line-height: 12px !important;
@@ -106,7 +112,12 @@
   color: var(--ll-on-glass-3) !important;
   background: transparent !important;
   text-align: right !important;
-  float: right !important;
+  float: none !important;
+  pointer-events: none !important;
+}
+/* 有文字的普通气泡给时间让出底部一行；纯图片/卡片不额外加高。 */
+.msg-content-container:has(.text-element):has([class*="msg-time"], [class*="message-time"], [class*="timestamp"], .msg-time) {
+  padding-bottom: 21px !important;
 }
 
 /* ── 4. 气泡内文字 ── */
