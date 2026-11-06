@@ -51,13 +51,15 @@
  * 视觉上"指向"而不是"切断"对话流。
  * ════════════════════════════════════════════════════════════ */
 
-/* 容器：横向 flex，两侧线 + 中间 pill */
-[class*="new-msg"],
-[class*="newMsg"],
-[class*="newmsg"],
-.chat-msg-area__tip,
-[class*="msg-divider"],
-[class*="unread-divider"] {
+/* 容器：横向 flex，两侧线 + 中间 pill。
+ * ⚠️ 必须限定在 .aio 聊天区：QQ 设置页里也有一个 .new-msg（桌面弹窗提醒的
+ * 行容器），不限定时会把设置项拉成横向胶囊（截图 5）。 */
+.aio [class*="new-msg"],
+.aio [class*="newMsg"],
+.aio [class*="newmsg"],
+.aio .chat-msg-area__tip,
+.aio [class*="msg-divider"],
+.aio [class*="unread-divider"] {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
@@ -74,12 +76,12 @@
 }
 
 /* 两侧细线 */
-[class*="new-msg"]::before,
-[class*="new-msg"]::after,
-[class*="msg-divider"]::before,
-[class*="msg-divider"]::after,
-[class*="unread-divider"]::before,
-[class*="unread-divider"]::after {
+.aio [class*="new-msg"]::before,
+.aio [class*="new-msg"]::after,
+.aio [class*="msg-divider"]::before,
+.aio [class*="msg-divider"]::after,
+.aio [class*="unread-divider"]::before,
+.aio [class*="unread-divider"]::after {
   content: "" !important;
   flex: 1 1 auto !important;
   height: 1px !important;
@@ -92,9 +94,9 @@
 }
 
 /* 中间胶囊：把文字本身做成 pill（若结构里文字是独立元素） */
-[class*="new-msg"] > *,
-[class*="msg-divider"] > *,
-[class*="unread-divider"] > * {
+.aio [class*="new-msg"] > *,
+.aio [class*="msg-divider"] > *,
+.aio [class*="unread-divider"] > * {
   flex: 0 0 auto !important;
   padding: 3px 12px !important;
   border-radius: 999px !important;
