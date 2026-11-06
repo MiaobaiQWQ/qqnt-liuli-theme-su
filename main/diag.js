@@ -33,6 +33,9 @@ const LL_LOG_FILE_MAX = 2 * 1024 * 1024;
 const LL_LOG_MAX_AGE_MS = 30 * 24 * 3600 * 1000;
 
 const CONFIG_MAX_BYTES = 4096;
+/* JSON 键名脱敏：其它插件的 config.json 里 token / password / apiKey 等
+ * 即使值是普通字符串，也不能原样进诊断包。 */
+const SENSITIVE_OBJ_KEY = /token|secret|passw|pwd|api[_-]?key|apikey|clientkey|skey|cookie|session|ticket|bkn|jwt|credential|authorization/i;
 const MANIFEST_RAW_MAX = 2048;          // manifest 原文展示上限（解析仍用全文）
 const MANIFEST_PARSE_MAX = 256 * 1024;
 const INSTALLER_TAIL_LINES = 200;
@@ -80,7 +83,7 @@ const SNAP_SCRIPT =
 const SNAP_SCRIPT_ASYNC =
     "(function(){try{var C=window.__liuliDiagCollect;" +
     "if(typeof C===\"function\"){" +
-    "return Promise.resolve().then(function(){return C({files:true,quota:false,wallpaperDecode:false,defaultWallpaper:false});})" +
+    "return Promise.resolve().then(function(){return C({files:true,quota:false,wallpaperDecode:false,defaultWallpaper:false,performance:false,timeoutMs:9000});})" +
     ".then(function(s){return JSON.stringify({mode:\"async\",snapshot:(s&&typeof s===\"object\")?s:null});})" +
     ".catch(function(e){return JSON.stringify({mode:\"async-error\",error:String((e&&e.message)||e)});});" +
     "}" +
@@ -260,6 +263,10 @@ function maskInline(input) {
     s = s.replace(/Bearer\s+[A-Za-z0-9._~+/=-]{8,}/gi, "Bearer ***");
     s = s.replace(/\bsk-[A-Za-z0-9_-]{8,}/g, "sk-***");
 
+    // 3.5) JSON / query / YAML 里的敏感键值：token、password、apiKey、cookie、session…
+    s = s.replace(/(["']?)\b(access[_-]?token|refresh[_-]?token|id[_-]?token|token|client[_-]?secret|client[_-]?key|clientkey|secret|passw(?:or)?d|passwd|pwd|api[_-]?key|apikey|skey|p_skey|bkn|pass[_-]?ticket|ticket|cookie|set[_-]?cookie|auth[_-]?token|session[_-]?(?:id|key)|sessionid|jwt|credential|authorization)\b(["']?\s*[:=]\s*)(["']?)([^"'\s,;&}]+)\4/gi,
+        (m, q1, key, sep, q2) => q1 + key + sep + q2 + "***" + q2);
+
     // 4) 邮箱：保留域名，本地部分抹掉
     s = s.replace(/([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, "***@$2");
 
@@ -313,6 +320,10 @@ function deepSanitize(value, depth) {
         let idx = 0;
         for (const key of Object.keys(value)) {
             if (idx++ >= 200) { out["<更多键>"] = Object.keys(value).length - 200; break; }
+            if (SENSITIVE_OBJ_KEY.test(String(key))) {
+                out[clip(String(key), 120)] = "<已脱敏>";
+                continue;
+            }
             out[clip(String(key), 120)] = deepSanitize(value[key], d + 1);
         }
         return out;
@@ -1237,13 +1248,16 @@ function createDiag(deps) {
                 } else {
                     try { parsed = JSON.parse(stripBom(cfg.text)); } catch (e) { parseError = errMsg(e); }
                 }
+                const safeText = parsed && typeof parsed === "object"
+                    ? JSON.stringify(deepSanitize(parsed, 0), null, 2)
+                    : cfg.text;
                 item.config = {
                     exists: true,
                     size: cfg.size,
                     truncated: cfg.truncated,
                     parseOk: parsed !== null,
                     parseError: parseError,
-                    text: clip(sanitizeText(cfg.text), CONFIG_MAX_BYTES)
+                    text: clip(sanitizeText(safeText), CONFIG_MAX_BYTES)
                 };
                 if (!parsed && parseError && !cfg.truncated) {
                     ctx.check("data.config.parse", "warn", "data/" + ent.name + "/config.json 解析失败：" + parseError);
@@ -1261,7 +1275,9 @@ function createDiag(deps) {
             try { parsed = JSON.parse(stripBom(llCfg.text)); } catch (e) { parseError = errMsg(e); }
             llItem.parseOk = parsed !== null;
             llItem.parseError = parseError;
-            llItem.text = clip(sanitizeText(llCfg.text), 8192);
+            llItem.text = clip(sanitizeText(parsed && typeof parsed === "object"
+                ? JSON.stringify(deepSanitize(parsed, 0), null, 2)
+                : llCfg.text), 8192);
             if (parsed) {
                 llItem.fields = {
                     enable_plugins: parsed.enable_plugins,
@@ -1907,6 +1923,9 @@ function createDiag(deps) {
         let mainImage = null;
         const shotIndex = [];
         const themeResults = [];
+        /* 快照总预算：窗口越多每个 2s 帧率 + DOM 扫越慢；这里只给 20s，
+         * 超出的窗口直接记失败原因，不再让导出拖到 30s+。 */
+        const snapDeadline = Date.now() + 20000;
 
         for (const wc of list) {
             // id 是属性不是方法，不能走 wcSafe
@@ -1970,7 +1989,9 @@ function createDiag(deps) {
             const snapName = "snapshots/window-" + (id === null ? "x" + out.windows.length : id) + ".json";
             let snapText = null;
             let snapOk = false;
-            const snapRes = await captureWindowSnapshot(wc, id);
+            const snapRes = Date.now() > snapDeadline
+                ? { ok: false, mode: "budget", error: "快照总预算 20s 已用完，跳过后续窗口" }
+                : await captureWindowSnapshot(wc, id);
             let snapMode = snapRes.mode || "error";
             let snapError = snapRes.error || null;
 
@@ -3355,7 +3376,32 @@ function createDiag(deps) {
             }
         };
 
-        handle("LiteLoader.liuli.diagExport", async (_event, payload) => {
+        /* 诊断导出/打开文件夹只允许设置页主 frame 调用：
+         * 同页其它插件也能 require("electron").ipcRenderer，不校验 sender 的话
+         * 它们可以触发聊天窗口截图、把 zip 路径读回去。 */
+        function isSettingsSender(event) {
+            try {
+                const sender = event && event.sender;
+                if (sender && sender.mainFrame && event.senderFrame && event.senderFrame !== sender.mainFrame) {
+                    return false;
+                }
+                let url = "";
+                if (event && event.senderFrame && event.senderFrame.url) {
+                    url = String(event.senderFrame.url);
+                } else if (sender && typeof sender.getURL === "function") {
+                    url = String(sender.getURL());
+                }
+                return /^app:\/\//i.test(url) && /#\/setting\b/i.test(url);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        handle("LiteLoader.liuli.diagExport", async (event, payload) => {
+            if (!isSettingsSender(event)) {
+                try { sessionLog.log("warn", "diag", "diagExport 被拒绝：sender 不是设置页"); } catch (e) { }
+                return { ok: false, path: null, copiedTo: null, error: "forbidden: sender is not the settings page", size: 0 };
+            }
             try {
                 return await exportDiag(payload);
             } catch (e) {
@@ -3379,7 +3425,11 @@ function createDiag(deps) {
             sessionLog.log("warn", "diag", "diagLog 监听注册失败：" + errMsg(e));
         }
 
-        handle("LiteLoader.liuli.diagOpenPath", async (_event, p) => {
+        handle("LiteLoader.liuli.diagOpenPath", async (event, p) => {
+            if (!isSettingsSender(event)) {
+                try { sessionLog.log("warn", "diag", "diagOpenPath 被拒绝：sender 不是设置页"); } catch (e) { }
+                return false;
+            }
             try { return await openPath(p); } catch (e) { return false; }
         });
 

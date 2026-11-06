@@ -1305,7 +1305,8 @@ function sampleFrameRate() {
                 out.worstFrameMs = Math.round(worst * 10) / 10;
                 out.longFrames = longFrames;
                 out.partial = elapsed < PERF_FPS_SAMPLE_MS * 0.8;
-                out.ok = true;
+                /* 2 帧也算「有帧」会得出 1000 FPS 之类的假值；至少 3 帧、250ms 才算有效。 */
+                out.ok = frames >= 3 && elapsed >= 250;
                 out.sampled = true;
                 resolve(out);
                 return;
@@ -1317,6 +1318,8 @@ function sampleFrameRate() {
             } else if (!out.error) {
                 out.error = "采样期间没有拿到足够的帧（" + frames + " 帧）";
             }
+            /* 关键：promise 必须 settle，否则 collectDiagnostics 的 Promise.all 卡到 30s 超时。 */
+            resolve(out);
         };
         const timer = setTimeout(() => finish("timeout"), PERF_FPS_TIMEOUT_MS);
         const tick = ts => {

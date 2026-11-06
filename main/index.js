@@ -8,6 +8,12 @@ const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const SLUG = "liuli-dsh-theme";
 const LOG = path.join(LiteLoader.path.data, SLUG, "plugin.log");
 const LOG_MAX_BYTES = 256 * 1024;   // plugin.log 单文件上限，与 diag 的 session.log 同一口径
+/* 判「数据目录是不是刚被整个删掉」必须在 log() 之前取：
+ * log() 自己会 mkdir 数据目录，之后再判断就永远是「存在」了。 */
+const LIULI_DATA_DIR = path.join(LiteLoader.path.data, SLUG);
+const LIULI_DATA_DIR_EXISTED = (() => {
+    try { return fs.existsSync(LIULI_DATA_DIR); } catch (e) { return false; }
+})();
 
 /** 写满了就把 plugin.log 滚到 plugin.1.log，避免长期使用后无限增长 */
 function rotateLog() {
@@ -56,11 +62,10 @@ try {
  * 用户能看到的只有数据目录 <LiteLoader.path.data>/liuli-dsh-theme/，
  * 但布局 / 明暗 / 壁纸 / 字体等其实存在渲染进程的 localStorage 里，删目录清不掉。
  * 所以用一个标记文件判断"用户是不是把整个数据目录删了"：
- *   wipe = 标记文件不存在 且 config.json 也不存在
- * 老用户正常升级到这个版本时 config.json 一定在 → wipe=false，绝不清他们的 localStorage；
- * 只有真的把整个目录删了（或全新安装）才 wipe。全新安装 localStorage 本来就是空的，清了也无害。
+ *   wipe = 启动前数据目录不存在
+ * 老用户正常升级时数据目录里至少有 plugin.log / settings-window.json，目录存在 → wipe=false，
+ * 绝不清他们的 localStorage；只有整个目录被删（或全新安装）才 wipe。
  * 判定完立刻把标记补上（空文件），下次启动 markerExists=true，不会重复触发。 */
-const LIULI_DATA_DIR = path.join(LiteLoader.path.data, SLUG);
 const LIULI_INIT_MARKER = path.join(LIULI_DATA_DIR, ".liuli-init");
 const LIULI_CONFIG_FILE = path.join(LIULI_DATA_DIR, "config.json");
 
@@ -72,10 +77,11 @@ let liuliWipePending = false;
 try {
     const markerExists = liuliFileExists(LIULI_INIT_MARKER);
     const configExists = liuliFileExists(LIULI_CONFIG_FILE);
-    liuliWipePending = !markerExists && !configExists;
+    liuliWipePending = !LIULI_DATA_DIR_EXISTED;
     try { fs.mkdirSync(LIULI_DATA_DIR, { recursive: true }); } catch (e) {}
     if (!markerExists) fs.writeFileSync(LIULI_INIT_MARKER, "", "utf8");
-    log("reset marker | marker=" + (markerExists ? 1 : 0) + " config=" + (configExists ? 1 : 0) +
+    log("reset marker | dirExisted=" + (LIULI_DATA_DIR_EXISTED ? 1 : 0) +
+        " marker=" + (markerExists ? 1 : 0) + " config=" + (configExists ? 1 : 0) +
         " wipe=" + (liuliWipePending ? 1 : 0));
 } catch (e) {
     log("reset marker failed: " + (e && e.message));
