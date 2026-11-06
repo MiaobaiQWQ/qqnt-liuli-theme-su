@@ -2546,7 +2546,10 @@ function buildWallpaperControls(host) {
         previewHost.style.display = "";
         previewActions.style.display = "";
         const ir = getImageRatio(st.src);
-        if (!ir) { primeImageRatio(st.src).then(render); }
+        if (!ir) {
+            /* 只有真的取到比例才重渲染；坏图返回 null 时再 render 会无限递归解码。 */
+            primeImageRatio(st.src).then(function (r) { if (r) render(); });
+        }
         const wr = winRatio();
         const width = "min(100%, calc(220px * " + wr + "))";
         const cr = cropRatioOf(ir);

@@ -527,6 +527,23 @@
 .message-container .msg-content-container.container--self .text-element * {
   color: var(--ll-bubble-self-fg, var(--ll-on-glass)) !important;
 }
+/* @ 高亮：上面的 * 会把 at 元素和它的子节点一起染成正文色，
+ * 这里按 data-ll-at 把 @别人 / @我 的颜色和底救回来（优先于 .ml-item 的规则）。 */
+.message-container .msg-content-container .text-element--at[data-ll-at="other"] {
+  color: var(--ll-link, var(--ll-brand)) !important;
+  font-weight: 500 !important;
+}
+.message-container .msg-content-container .text-element--at[data-ll-at="me"] {
+  color: var(--ll-on-tertiary-container) !important;
+  background: var(--ll-tertiary-container) !important;
+  font-weight: 600 !important;
+  padding: 0 4px !important;
+  border-radius: 6px !important;
+}
+.message-container .msg-content-container .text-element--at * {
+  background: transparent !important;
+  color: inherit !important;
+}
 
 /* 自己的消息不显示自己的名字（TG 行为） */
 .message-container .msg-content-container.container--self > .user-name {

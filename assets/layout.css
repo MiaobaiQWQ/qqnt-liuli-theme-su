@@ -999,7 +999,8 @@ body .chat-input-area > .chat-func-bar.liuli-expanded {
  * 用 DSH composer-card 的做法：磨砂放在 ::before 上，内容在其上方。 */
 body .aio .chat-input-area {
   background: transparent !important;
-  isolation: isolate !important;
+  /* isolation 会让 backdrop-filter 以元素自身为 backdrop root，
+   * ::before 的模糊只看到透明底；父级已有 position+z-index，不需要 isolation。 */
   box-shadow: var(--ll-card-shadow) !important;
 }
 body .aio .chat-input-area::before {
@@ -1085,7 +1086,8 @@ body .chat-input-area > .chat-func-bar.liuli-expanded:not(#ll) {
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  isolation: isolate !important;
+  /* 不在这里 isolation：父级 chat-input-area 已被 ::before 的 z-index:-1 隔离；
+   * isolation 会让工具栏 ::before 的 backdrop-filter 失效。 */
   transform-origin: bottom left !important;
 }
 body .chat-input-area > .chat-func-bar.liuli-expanded:not(#ll)::before {
@@ -1416,7 +1418,9 @@ body .bar-more-menu.q-float-card:not(#ll) {
 body .aio .side-panel:not(#ll) {
   border-radius: var(--ll-radius) !important;
   overflow: hidden auto !important;
-  isolation: isolate !important;
+  /* 用 z-index:0 而不是 isolation：既让 ::before 的 z-index:-1 留在面板内，
+   * 又不阻断 ::before 的 backdrop-filter。 */
+  z-index: 0 !important;
   box-shadow: var(--ll-float-shadow, var(--ll-shadow-float)) !important;
 }
 body .aio .side-panel:not(#ll)::before {
