@@ -166,6 +166,8 @@ function deriveVars(mcu, sourceHex, isDark, roles) {
         "--ll-on-brand-rgb": rgbTriplet(onPrimary),
         "--ll-secondary": mcu.hexFromArgb(s.secondary),
         "--ll-tertiary": mcu.hexFromArgb(s.tertiary),
+        "--ll-on-secondary": mcu.hexFromArgb(s.onSecondary),
+        "--ll-on-tertiary": mcu.hexFromArgb(s.onTertiary),
         "--ll-tertiary-container": mcu.hexFromArgb(s.tertiaryContainer),
         "--ll-on-tertiary-container": mcu.hexFromArgb(s.onTertiaryContainer),
         "--ll-secondary-container": mcu.hexFromArgb(s.secondaryContainer),
@@ -1720,6 +1722,35 @@ function llLockPass() {
         } catch (e) {}
         llLockState = { overlay: overlay, prev: prev };
         try { document.body.dataset.liuliLocked = "1"; } catch (e) {}
+    } catch (e) { /* 静默 */ }
+}
+
+/* 群主 / 管理员标签：按文字给标签容器打 data-liuli-role，
+ * 颜色由 lists.css 用 secondary / tertiary 实底 + on 配对来区分。
+ * QQ 的等级/头衔标签类名不稳定，按文字找比硬编码类名可靠。 */
+function llRoleTagPass() {
+    try {
+        const roots = document.querySelectorAll(".group-member .group-user, .message-container .user-name");
+        for (let r = 0; r < roots.length; r++) {
+            const els = roots[r].querySelectorAll("span, div, i");
+            for (let i = 0; i < els.length; i++) {
+                const el = els[i];
+                if (el.children.length) continue;
+                const t = (el.textContent || "").trim();
+                if (!t || t.length > 40) continue;
+                const role = t.indexOf("群主") >= 0 ? "owner"
+                    : (t.indexOf("管理员") >= 0 ? "admin" : "");
+                if (!role) continue;
+                /* 找最近的「像标签」的容器：类名带 tag/label/title/badge/role；
+                 * 找不到就用父元素。 */
+                let box = el;
+                let n = el;
+                for (let d = 0; d < 4 && n && n !== document.body; d++, n = n.parentElement) {
+                    if (/tag|label|badge|role/i.test(String(n.className || ""))) { box = n; break; }
+                }
+                if (box.dataset.liuliRole !== role) box.dataset.liuliRole = role;
+            }
+        }
     } catch (e) { /* 静默 */ }
 }
 
@@ -3368,7 +3399,7 @@ async function initPanel() {
         applyOverrides();
         fixContrast();
         normalizeColors();
-        setInterval(() => { if (window.__liuliPause) return; if (performance.now() - (window.__llScrollT || 0) < 600) return; /* 正在滚动：这一轮跳过，免得滚动中卡一下 */ if (document.querySelector(".q-dialog-modal")) { mountInputBar(); return; } applyOverrides(); fixContrast(); normalizeColors(); keepWindowControlsVisible(); mountInputBar(); groupMessages(); stickAvatars(); markQuoteRoots(); moveSenderIntoBubble(); ensureHoverEntries(); llWatchContactList(); llGroupMembersPass(); llMarkdownPass(); llLayoutPass(); llLockPass(); }, 1500);
+        setInterval(() => { if (window.__liuliPause) return; if (performance.now() - (window.__llScrollT || 0) < 600) return; /* 正在滚动：这一轮跳过，免得滚动中卡一下 */ if (document.querySelector(".q-dialog-modal")) { mountInputBar(); return; } applyOverrides(); fixContrast(); normalizeColors(); keepWindowControlsVisible(); mountInputBar(); groupMessages(); stickAvatars(); markQuoteRoots(); moveSenderIntoBubble(); ensureHoverEntries(); llWatchContactList(); llGroupMembersPass(); llMarkdownPass(); llLayoutPass(); llLockPass(); llRoleTagPass(); }, 1500);
         try { installLayout(function () { llSyncPins(); }); } catch (e) { console.warn("[liuli-dsh-theme] layout failed:", e && e.message); }
         try { installArkExternal(window.liuli_api); } catch (e) { console.warn("[liuli-dsh-theme] ark external failed:", e && e.message); }
         installMarkdownObserver();

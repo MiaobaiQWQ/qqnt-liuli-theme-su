@@ -228,23 +228,22 @@ body::after {
 .q-tag--blue,
 .q-tag--blue .title,
 .q-tag--blue * {
-  color: var(--ll-on-secondary-container) !important;
+  color: var(--ll-on-secondary, var(--ll-on-brand)) !important;
 }
 
 .q-tag--blue {
-  background: var(--ll-secondary-container) !important;
-  box-shadow: inset 0 0 0 1px rgba(var(--ll-brand-rgb), 0.22) !important;
+  background: var(--ll-secondary) !important;
 }
 
-/* 橙色（群主）：走 M3 tertiary 的 container / onContainer 配对 */
+/* 橙色（群主）：走 M3 tertiary 实底 + onTertiary */
 .q-tag--orange,
 .q-tag--orange .title,
 .q-tag--orange * {
-  color: var(--ll-on-tertiary-container) !important;
+  color: var(--ll-on-tertiary, var(--ll-on-brand)) !important;
 }
 
 .q-tag--orange {
-  background: var(--ll-tertiary-container) !important;
+  background: var(--ll-tertiary) !important;
 }
 
 /* 其余 q-tag 变体统一走 onGlass 二级色，避免任何深底深字 */

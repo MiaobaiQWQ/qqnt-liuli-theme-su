@@ -76,8 +76,8 @@
   line-height: 15px !important;
   font-weight: 500 !important;
   letter-spacing: 0 !important;
-  background: var(--ll-secondary-container) !important;
-  color: var(--ll-on-secondary-container) !important;
+  background: var(--ll-secondary) !important;
+  color: var(--ll-on-secondary, var(--ll-on-brand)) !important;
   border: none !important;
 }
 .msg-content-container .group-member-label *,
@@ -88,8 +88,8 @@
 /* 群主单独走 tertiary 角色 */
 .msg-content-container .group-member-label.q-tag--orange,
 .msg-content-container .user-name .q-tag.q-tag--orange {
-  background: var(--ll-tertiary-container) !important;
-  color: var(--ll-on-tertiary-container) !important;
+  background: var(--ll-tertiary) !important;
+  color: var(--ll-on-tertiary, var(--ll-on-brand)) !important;
 }
 
 /* ── 3. 时间：气泡内部右下角 ── */
