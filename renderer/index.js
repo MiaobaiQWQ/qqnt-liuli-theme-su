@@ -1597,6 +1597,112 @@ function installRevealTracker() {
     window.addEventListener("blur", onBlur);
 }
 
+/* ---------- 锁定状态：别让聊天内容透出来 ----------
+ * QQ 锁定时把「QQ Windows 版已被锁定」提示卡盖在聊天区上，但聊天本身仍然可见。
+ * 找到承载这张卡的全屏浮层，给它补一层背景 + backdrop blur；锁定卡是它的子节点，
+ * 仍然画在模糊层之上，解锁后把内联样式恢复原样。 */
+let llLockState = null;
+let llLockCheckedAt = 0;
+
+function llLockFind() {
+    try {
+        if (!document.body) return null;
+        const xp = document.evaluate(
+            "//*[contains(., 'QQ Windows 版已被锁定') or contains(., '你可以在手机QQ消息列表顶部状态栏解锁')]",
+            document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        let best = null;
+        for (let i = 0; i < xp.snapshotLength; i++) {
+            const el = xp.snapshotItem(i);
+            if (!el || el.nodeType !== 1) continue;
+            if (el === document.body || el === document.documentElement) continue;
+            const r = el.getBoundingClientRect();
+            if (r.width < 2 || r.height < 2) continue;
+            const len = (el.textContent || "").length;
+            if (len > 3000) continue;
+            if (!best || len < (best.textContent || "").length) best = el;
+        }
+        return best;
+    } catch (e) {
+        return null;
+    }
+}
+
+function llLockClear() {
+    if (!llLockState) return;
+    try {
+        const o = llLockState.overlay;
+        const h = llLockState.prev;
+        if (o && o.style) {
+            const restore = function (prop, value, priority) {
+                try {
+                    if (value) o.style.setProperty(prop, value, priority);
+                    else o.style.removeProperty(prop);
+                } catch (e) {}
+            };
+            restore("background", h.background, h.backgroundPriority);
+            restore("backdrop-filter", h.backdropFilter, h.backdropPriority);
+            restore("-webkit-backdrop-filter", h.webkitBackdropFilter, h.webkitBackdropPriority);
+        }
+    } catch (e) {}
+    llLockState = null;
+    try { delete document.body.dataset.liuliLocked; } catch (e) {}
+}
+
+function llLockPass() {
+    try {
+        if (llLockState) {
+            const o = llLockState.overlay;
+            if (!o || !o.isConnected) { llLockClear(); return; }
+            const r = o.getBoundingClientRect();
+            const cs = getComputedStyle(o);
+            const text = o.textContent || "";
+            if (r.width < 20 || r.height < 20 || cs.display === "none" || cs.visibility === "hidden" ||
+                (text.indexOf("已被锁定") < 0 && text.indexOf("在手机上解锁") < 0)) {
+                llLockClear();
+            }
+            return;
+        }
+        const now = Date.now();
+        if (now - llLockCheckedAt < 4000) return;
+        llLockCheckedAt = now;
+        /* 锁定只发生在主窗口；聊天独立窗 / 设置窗没有 .recent-contact，直接跳过检测 */
+        if (!document.querySelector(".recent-contact")) return;
+        const hit = llLockFind();
+        if (!hit) return;
+
+        /* 从命中节点往上找「覆盖大半窗口、但文字量不大」的那层浮层；
+         * 文字量大说明它把整页聊天都包进去了，给这种祖先加背景也盖不住内容，放弃。 */
+        const vw = window.innerWidth || 1;
+        const vh = window.innerHeight || 1;
+        let overlay = hit;
+        while (overlay && overlay !== document.body && overlay !== document.documentElement) {
+            const r = overlay.getBoundingClientRect();
+            const len = (overlay.textContent || "").length;
+            if (r.width >= vw * 0.6 && r.height >= vh * 0.6 && len < 20000) break;
+            overlay = overlay.parentElement;
+        }
+        if (!overlay || overlay === document.body || overlay === document.documentElement) return;
+
+        const style = overlay.style;
+        const prev = {
+            background: style.getPropertyValue("background"),
+            backgroundPriority: style.getPropertyPriority("background"),
+            backdropFilter: style.getPropertyValue("backdrop-filter"),
+            backdropPriority: style.getPropertyPriority("backdrop-filter"),
+            webkitBackdropFilter: style.getPropertyValue("-webkit-backdrop-filter"),
+            webkitBackdropPriority: style.getPropertyPriority("-webkit-backdrop-filter")
+        };
+        try {
+            /* 纯黑 = QQ 原版锁定观感；半透明 + 模糊会把后面的聊天内容透出来。 */
+            style.setProperty("background", "#000000", "important");
+            style.setProperty("backdrop-filter", "none", "important");
+            style.setProperty("-webkit-backdrop-filter", "none", "important");
+        } catch (e) {}
+        llLockState = { overlay: overlay, prev: prev };
+        try { document.body.dataset.liuliLocked = "1"; } catch (e) {}
+    } catch (e) { /* 静默 */ }
+}
+
 /* ---------- 悬浮控件与侧栏的指向入口 ----------
  * ⚠️ QQ 顶部 40px 与左侧 52px 是窗口拖动区（-webkit-app-region: drag），
  * Windows 下鼠标在拖动区里不会把事件发给页面，:hover 永远不触发。
@@ -3242,12 +3348,13 @@ async function initPanel() {
         applyOverrides();
         fixContrast();
         normalizeColors();
-        setInterval(() => { if (window.__liuliPause) return; if (performance.now() - (window.__llScrollT || 0) < 600) return; /* 正在滚动：这一轮跳过，免得滚动中卡一下 */ if (document.querySelector(".q-dialog-modal")) { mountInputBar(); return; } applyOverrides(); fixContrast(); normalizeColors(); keepWindowControlsVisible(); mountInputBar(); groupMessages(); stickAvatars(); markQuoteRoots(); moveSenderIntoBubble(); ensureHoverEntries(); llWatchContactList(); llGroupMembersPass(); llMarkdownPass(); llLayoutPass(); }, 1500);
+        setInterval(() => { if (window.__liuliPause) return; if (performance.now() - (window.__llScrollT || 0) < 600) return; /* 正在滚动：这一轮跳过，免得滚动中卡一下 */ if (document.querySelector(".q-dialog-modal")) { mountInputBar(); return; } applyOverrides(); fixContrast(); normalizeColors(); keepWindowControlsVisible(); mountInputBar(); groupMessages(); stickAvatars(); markQuoteRoots(); moveSenderIntoBubble(); ensureHoverEntries(); llWatchContactList(); llGroupMembersPass(); llMarkdownPass(); llLayoutPass(); llLockPass(); }, 1500);
         try { installLayout(function () { llSyncPins(); }); } catch (e) { console.warn("[liuli-dsh-theme] layout failed:", e && e.message); }
         try { installArkExternal(window.liuli_api); } catch (e) { console.warn("[liuli-dsh-theme] ark external failed:", e && e.message); }
         installMarkdownObserver();
         installAvatarStick();
         ensureHoverEntries();
+        llLockPass();
         installMessageObserver();
         installSideListObserver();
         llWatchContactList();

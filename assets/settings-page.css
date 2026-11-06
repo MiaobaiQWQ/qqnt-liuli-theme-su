@@ -235,3 +235,11 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* 宽窗口下 QQ 会把设置项排成横向胶囊（截图 5），
+ * 把内容限回单列宽度并强制块级流，排版和截图 4 的纵向列表一致。 */
+.setting-layout .setting-main {
+  display: block !important;
+  max-width: 760px !important;
+  min-width: 0 !important;
+}

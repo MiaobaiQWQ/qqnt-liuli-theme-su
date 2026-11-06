@@ -551,16 +551,15 @@
 }
 
 /* ── 尾巴：只在 last / single，底部靠头像一侧 ──
- * 伪元素继承气泡底色，用 SVG 遮罩裁成 TG 的弧形尖角。 */
+ * 伪元素继承容器底色，用 SVG 遮罩裁成 TG 的弧形尖角。
+ * 文字气泡、图片消息、表情包共用同一套；ark / 转发卡片仍然不画。 */
 .message-container .msg-content-container.container--others::before,
 .message-container .msg-content-container.container--self::before {
   content: none !important;
 }
 
-.message-container[data-liuli-g="last"] .msg-content-container.container--others:not(.mix-message__container--pic)::before,
-.message-container[data-liuli-g="single"] .msg-content-container.container--others:not(.mix-message__container--pic)::before,
-.message-container[data-liuli-g="last"] .msg-content-container.container--self:not(.mix-message__container--pic)::before,
-.message-container[data-liuli-g="single"] .msg-content-container.container--self:not(.mix-message__container--pic)::before {
+.message-container[data-liuli-g="last"] .msg-content-container:is(.container--others, .container--self):not(.ark-msg-content-container):not(:has(.ark-view-message)):not(:has(.forward-msg))::before,
+.message-container[data-liuli-g="single"] .msg-content-container:is(.container--others, .container--self):not(.ark-msg-content-container):not(:has(.ark-view-message)):not(:has(.forward-msg))::before {
   content: "" !important;
   display: block !important;
   position: absolute !important;
@@ -580,17 +579,8 @@
   left: -9px !important;
   right: auto !important;
 }
-/* 对方的气泡默认是半透明的（acrylic 0.86），尾巴压进去的那 1px 会叠两层透明度，
- * 变成一条更亮 / 更暗的细线，所以默认不压进去（还是 9px）；选了彩色（实底）配色时才压进去。 */
-.message-container .msg-content-container.container--others::before {
-  width: 9px !important;
-  -webkit-mask-size: 10px 100% !important;
-  mask-size: 10px 100% !important;
-}[data-liuli-other-solid] .message-container .msg-content-container.container--others::before {
-  width: 10px !important;
-  -webkit-mask-size: 100% 100% !important;
-  mask-size: 100% 100% !important;
-}
+/* 图片 / 表情的外框只有 3px，尾巴必须跟外框同色：容器已经写好了
+ * --ll-bubble-other / --ll-bubble-self 或亚克力底，background: inherit 直接对上。 */
 
 .message-container .msg-content-container.container--self::before {
   right: -9px !important;
@@ -631,27 +621,32 @@
  * 纯图片消息：去掉气泡内边距，图本身就是气泡（TG 做法），
  * 圆角跟分组走；卡片（ark/小程序/转发）统一成同一套深色卡片。
  * ════════════════════════════════════════════════════════════ */
-.message-container .msg-content-container.mix-message__container--pic {
+.message-container .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image) {
   padding: 3px !important;
   background: rgba(var(--ll-acrylic), 0.86) !important;
 }
-.message-container .msg-content-container.mix-message__container--pic.container--others {
+.message-container .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image).container--others {
   background: var(--ll-bubble-other, rgba(var(--ll-acrylic), 0.86)) !important;
 }
-.message-container .msg-content-container.mix-message__container--pic.container--self {
+.message-container .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image).container--self {
   background: var(--ll-bubble-self, rgba(var(--ll-acrylic), 0.86)) !important;
 }
-.message-container[data-liuli-g="last"] .msg-content-container.mix-message__container--pic,
-.message-container[data-liuli-g="single"] .msg-content-container.mix-message__container--pic {
-  border-radius: 16px !important;
+/* 末条要留出尾巴那一侧的小圆角，尾巴才不会像悬空贴上去 */
+.message-container[data-liuli-g="last"] .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image).container--others,
+.message-container[data-liuli-g="single"] .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image).container--others {
+  border-radius: 16px 16px 16px 4px !important;
 }
-.message-container .msg-content-container.mix-message__container--pic .pic-element,
-.message-container .msg-content-container.mix-message__container--pic img {
+.message-container[data-liuli-g="last"] .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image).container--self,
+.message-container[data-liuli-g="single"] .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image).container--self {
+  border-radius: 16px 16px 4px 16px !important;
+}
+.message-container .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image) .pic-element,
+.message-container .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image) img {
   border-radius: 13px !important;
   overflow: hidden !important;
 }
 /* 有名字的图片消息：名字行补回内边距 */
-.message-container .msg-content-container.mix-message__container--pic > .user-name {
+.message-container .msg-content-container:is(.mix-message__container--pic, .mix-message__container--image) > .user-name {
   padding: 4px 8px 2px !important;
 }
 
