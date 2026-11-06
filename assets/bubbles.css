@@ -552,14 +552,14 @@
 
 /* ── 尾巴：只在 last / single，底部靠头像一侧 ──
  * 伪元素继承容器底色，用 SVG 遮罩裁成 TG 的弧形尖角。
- * 文字气泡、图片消息、表情包共用同一套；ark / 转发卡片仍然不画。 */
+ * 文字气泡、图片消息、表情包、转发卡片共用同一套；ark / 小程序卡片仍然不画。 */
 .message-container .msg-content-container.container--others::before,
 .message-container .msg-content-container.container--self::before {
   content: none !important;
 }
 
-.message-container[data-liuli-g="last"] .msg-content-container:is(.container--others, .container--self):not(.ark-msg-content-container):not(:has(.ark-view-message)):not(:has(.forward-msg))::before,
-.message-container[data-liuli-g="single"] .msg-content-container:is(.container--others, .container--self):not(.ark-msg-content-container):not(:has(.ark-view-message)):not(:has(.forward-msg))::before {
+.message-container[data-liuli-g="last"] .msg-content-container:is(.container--others, .container--self):not(.ark-msg-content-container):not(:has(.ark-view-message))::before,
+.message-container[data-liuli-g="single"] .msg-content-container:is(.container--others, .container--self):not(.ark-msg-content-container):not(:has(.ark-view-message))::before {
   content: "" !important;
   display: block !important;
   position: absolute !important;
