@@ -94,6 +94,23 @@ body .recent-contact-item:has(.q-badge__grey):not(.recent-contact-item--selected
 
 /* ── 4. 身份标签分色：群主 tertiary、管理员 secondary（都由壁纸派生） ──
  * 群成员栏和气泡里的名字标签用同一套。 */
+body .group-member .group-member-label:not(#ll) {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 16px !important;
+  padding: 0 6px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 16px !important;
+  background: var(--ll-secondary-container) !important;
+  color: var(--ll-on-secondary-container) !important;
+  border: none !important;
+}
+body .group-member .group-member-label:not(#ll) * {
+  background: transparent !important;
+  color: inherit !important;
+}
 body .group-user .q-tag.q-tag--orange:not(#ll),
 body .message-container .user-name .q-tag.q-tag--orange:not(#ll) {
   background: var(--ll-tertiary-container) !important;
@@ -286,4 +303,35 @@ body .recent-contact .q-scroll-view:not(#ll) {
  * 宽度减掉两侧外边距。 */
 body .recent-contact .recent-contact-item:not(#ll) {
   width: calc(100% - 12px) !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+ * 置顶会话：QQ 给置顶项的类名是 .recent-contact-item--top
+ * ------------------------------------------------------------
+ * 之前只靠排序，置顶和普通会话长得一样；这里加左侧品牌竖条 + 淡淡的品牌底。
+ * 选中的置顶项不叠加，保留选中态的整块 primary 底。
+ * ════════════════════════════════════════════════════════════ */
+body .recent-contact .recent-contact-item.recent-contact-item--top:not(.recent-contact-item--selected):not(#ll) {
+  background:
+    linear-gradient(90deg, rgba(var(--ll-brand-rgb), 0.13), rgba(var(--ll-brand-rgb), 0.04) 62%, transparent 100%) !important;
+  box-shadow: inset 0 0 0 1px rgba(var(--ll-brand-rgb), 0.16) !important;
+  border-radius: 12px !important;
+}
+body .recent-contact .recent-contact-item.recent-contact-item--top:not(.recent-contact-item--selected):not(#ll):hover {
+  background:
+    linear-gradient(90deg, rgba(var(--ll-brand-rgb), 0.18), rgba(var(--ll-brand-rgb), 0.06) 62%, transparent 100%) !important;
+}
+body .recent-contact .recent-contact-item.recent-contact-item--top:not(.recent-contact-item--selected):not(#ll)::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 50% !important;
+  width: 3px !important;
+  height: 22px !important;
+  margin-top: -11px !important;
+  border-radius: 0 3px 3px 0 !important;
+  background: var(--ll-brand) !important;
+  box-shadow: 0 0 8px rgba(var(--ll-brand-rgb), 0.8) !important;
+  pointer-events: none !important;
 }

@@ -226,25 +226,25 @@ body::after {
  * ════════════════════════════════════════════════════════════ */
 
 .q-tag--blue,
-.q-tag--blue .title {
-  color: var(--ll-brand) !important;
+.q-tag--blue .title,
+.q-tag--blue * {
+  color: var(--ll-on-secondary-container) !important;
 }
 
 .q-tag--blue {
-  background: rgba(var(--ll-brand-rgb), 0.18) !important;
+  background: var(--ll-secondary-container) !important;
+  box-shadow: inset 0 0 0 1px rgba(var(--ll-brand-rgb), 0.22) !important;
 }
 
-/* 橙色（群主）：文字走 M3 的 tertiary（由源色派生），不再硬编码橙 */
+/* 橙色（群主）：走 M3 tertiary 的 container / onContainer 配对 */
 .q-tag--orange,
-.q-tag--orange .title {
-  color: var(--ll-tertiary) !important;
+.q-tag--orange .title,
+.q-tag--orange * {
+  color: var(--ll-on-tertiary-container) !important;
 }
 
-body[q-theme="light"]:not([data-liuli-dark="1"]) .q-tag--orange,
-body[data-liuli-dark="0"] .q-tag--orange,
-body[q-theme="light"]:not([data-liuli-dark="1"]) .q-tag--orange .title,
-body[data-liuli-dark="0"] .q-tag--orange .title {
-  color: var(--ll-on-glass) !important;
+.q-tag--orange {
+  background: var(--ll-tertiary-container) !important;
 }
 
 /* 其余 q-tag 变体统一走 onGlass 二级色，避免任何深底深字 */

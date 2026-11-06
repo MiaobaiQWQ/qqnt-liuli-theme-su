@@ -61,7 +61,9 @@
   border: none !important;
 }
 
-/* 身份标签（群主/管理员）：小胶囊，跟名字同排 */
+/* 身份标签（群主/管理员）：小胶囊，跟名字同排。
+ * 底/字必须成对：以前用 brand 18% 底 + brand 字，暗色下是浅蓝压浅蓝，
+ * 「LV6 现任咖啡厅…」这类标签几乎读不出来。 */
 .msg-content-container .group-member-label,
 .msg-content-container .user-name .q-tag {
   display: inline-flex !important;
@@ -74,9 +76,20 @@
   line-height: 15px !important;
   font-weight: 500 !important;
   letter-spacing: 0 !important;
-  background: rgba(var(--ll-brand-rgb), 0.18) !important;
-  color: var(--ll-brand) !important;
+  background: var(--ll-secondary-container) !important;
+  color: var(--ll-on-secondary-container) !important;
   border: none !important;
+}
+.msg-content-container .group-member-label *,
+.msg-content-container .user-name .q-tag * {
+  background: transparent !important;
+  color: inherit !important;
+}
+/* 群主单独走 tertiary 角色 */
+.msg-content-container .group-member-label.q-tag--orange,
+.msg-content-container .user-name .q-tag.q-tag--orange {
+  background: var(--ll-tertiary-container) !important;
+  color: var(--ll-on-tertiary-container) !important;
 }
 
 /* ── 3. 时间：气泡内部右下角 ── */
