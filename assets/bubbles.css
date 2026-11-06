@@ -560,13 +560,17 @@
 
 .message-container[data-liuli-g="last"] .msg-content-container:is(.container--others, .container--self)::before,
 .message-container[data-liuli-g="single"] .msg-content-container:is(.container--others, .container--self)::before {
+  content: none !important;
+}
+
+/* 默认（头像在最后一条）：尾巴在气泡下方；气泡装扮（personalization）的尾巴交给皮肤，不叠第二条 */
+body:not([data-liuli-avatar-anchor="first"]) .message-container[data-liuli-g="last"] .msg-content-container:is(.container--others, .container--self):not(.container--personalization)::before,
+body:not([data-liuli-avatar-anchor="first"]) .message-container[data-liuli-g="single"] .msg-content-container:is(.container--others, .container--self):not(.container--personalization)::before {
   content: "" !important;
   display: block !important;
   position: absolute !important;
   bottom: 0 !important;
-  /* 宽 10px：外面 9px 是尾巴，里面 1px 压进气泡（#16）。
-   * 气泡和尾巴是两块分别取整到设备像素的绘制，125% / 175% 这类缩放下两边各舍入一次，
-   * 中间会漏出 1 设备像素的缝。压进去 1px 就盖住了。 */
+  /* 宽 10px：外面 9px 是尾巴，里面 1px 压进气泡（#16）。 */
   width: 10px !important;
   height: 17px !important;
   background: inherit !important;
@@ -574,7 +578,6 @@
   -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 17'%3E%3Cpath d='M10 0v17H0c4.5-.5 8-3.5 9-9V0z'/%3E%3C/svg%3E") no-repeat 0 0 / 100% 100% !important;
   mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 17'%3E%3Cpath d='M10 0v17H0c4.5-.5 8-3.5 9-9V0z'/%3E%3C/svg%3E") no-repeat 0 0 / 100% 100% !important;
 }
-
 .message-container .msg-content-container.container--others::before {
   left: -9px !important;
   right: auto !important;
@@ -817,4 +820,55 @@ body .message-container:has(.msg-content-container.container--self):not(#ll) {
 .message-container .message-content__wrapper .msg-content-container.container--personalization:not(#ll)::before,
 .message-container .message-content__wrapper .msg-content-container.container--personalization:not(#ll)::after {
   content: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+ * 头像位置：第一条模式（body[data-liuli-avatar-anchor="first"]）
+ * ------------------------------------------------------------
+ * 头像、名字、尾巴、圆角整体翻到组头；默认 last 模式的规则完全不动。
+ * 气泡装扮（container--personalization）的尾巴归皮肤管，这里不碰。
+ * ════════════════════════════════════════════════════════════ */
+body[data-liuli-avatar-anchor="first"] .message-container[data-liuli-g="mid"] > [class*="avatar"],
+body[data-liuli-avatar-anchor="first"] .message-container[data-liuli-g="last"] > [class*="avatar"] {
+  display: none !important;
+}
+body[data-liuli-avatar-anchor="first"] .message-container[data-liuli-g="first"] > [class*="avatar"],
+body[data-liuli-avatar-anchor="first"] .message-container[data-liuli-g="single"] > [class*="avatar"] {
+  display: flex !important;
+  align-self: start !important;
+  position: static !important;
+}
+
+/* 尾巴翻到上方：同一套 SVG 遮罩，垂直翻转；自己的消息再叠水平翻转 */
+body[data-liuli-avatar-anchor="first"] .message-container[data-liuli-g="first"] .msg-content-container:is(.container--others, .container--self):not(.container--personalization)::before,
+body[data-liuli-avatar-anchor="first"] .message-container[data-liuli-g="single"] .msg-content-container:is(.container--others, .container--self):not(.container--personalization)::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  bottom: auto !important;
+  width: 10px !important;
+  height: 17px !important;
+  background: inherit !important;
+  pointer-events: none !important;
+  transform: scaleY(-1) !important;
+  -webkit-mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 17'%3E%3Cpath d='M10 0v17H0c4.5-.5 8-3.5 9-9V0z'/%3E%3C/svg%3E") no-repeat 0 0 / 100% 100% !important;
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 17'%3E%3Cpath d='M10 0v17H0c4.5-.5 8-3.5 9-9V0z'/%3E%3C/svg%3E") no-repeat 0 0 / 100% 100% !important;
+}
+body[data-liuli-avatar-anchor="first"] .message-container:is([data-liuli-g="first"], [data-liuli-g="single"]) .msg-content-container.container--self:not(.container--personalization)::before {
+  transform: scaleX(-1) scaleY(-1) !important;
+}
+
+/* 圆角：第一条模式把「靠头像的上角」收小，其余回正；last 模式不动 */
+body[data-liuli-avatar-anchor="first"] .message-container:is([data-liuli-g="first"], [data-liuli-g="single"]) .msg-content-container.container--others:not(.container--personalization) {
+  border-radius: 0 16px 16px 16px !important;
+}
+body[data-liuli-avatar-anchor="first"] .message-container:is([data-liuli-g="first"], [data-liuli-g="single"]) .msg-content-container.container--self:not(.container--personalization) {
+  border-radius: 16px 0 16px 16px !important;
+}
+body[data-liuli-avatar-anchor="first"] .message-container:is([data-liuli-g="mid"], [data-liuli-g="last"]) .msg-content-container.container--others:not(.container--personalization) {
+  border-radius: 16px !important;
+}
+body[data-liuli-avatar-anchor="first"] .message-container:is([data-liuli-g="mid"], [data-liuli-g="last"]) .msg-content-container.container--self:not(.container--personalization) {
+  border-radius: 16px !important;
 }

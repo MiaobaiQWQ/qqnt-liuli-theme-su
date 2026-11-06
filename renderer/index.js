@@ -1039,6 +1039,14 @@ function stickAvatars() {
     try {
         var vp = document.querySelector(".chat-msg-area__vlist") || document.querySelector(".chat-msg-area");
         if (!vp) return;
+        /* 头像在第一条时不做吸附：头像固定在组头，滚走就滚走。
+         * 顺便把 last 模式留下的 translateY 清掉。 */
+        if (document.body.dataset.liuliAvatarAnchor === "first") {
+            vp.querySelectorAll('.message-container > [class*="avatar"]').forEach(function (a) {
+                if (a.dataset.liuliTy) { delete a.dataset.liuliTy; a.style.transform = ""; }
+            });
+            return;
+        }
         var vr = vp.getBoundingClientRect();
         var list = vp.querySelectorAll(".message-container");
         var groupTop = null;
@@ -1078,6 +1086,15 @@ function stickAvatars() {
         }
     } catch (e) { /* 静默 */ }
 }
+
+/* 切换头像位置时立即清掉旧吸附位移（设置页点一下就走这里，不用等 1.5s） */
+window.__liuliStickReset = function () {
+    try {
+        document.querySelectorAll('.message-container > [class*="avatar"]').forEach(function (a) {
+            if (a.dataset.liuliTy) { delete a.dataset.liuliTy; a.style.transform = ""; }
+        });
+    } catch (e) { /* 静默 */ }
+};
 
 var liuliStickRaf = 0;
 function scheduleStick() {

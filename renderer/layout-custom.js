@@ -8,7 +8,7 @@
 
 const KEY = "liuli-layout";
 const SEEN_KEY = "liuli-layout-seen";
-const DEFAULTS = { menuCompact: false, menuOrder: [], barOrder: [], barPinned: 1, navHidden: [], titlebar: "float", navPin: false };
+const DEFAULTS = { menuCompact: false, menuOrder: [], barOrder: [], barPinned: 1, navHidden: [], titlebar: "float", navPin: false, avatarAnchor: "last" };
 
 const ICON_UP = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
 const ICON_DOWN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>';
@@ -181,6 +181,18 @@ export function applyAll() {
          * 会让 CSS 继续按展开态算材质（唯一一处跨模块清理）。 */
         document.body.toggleAttribute("data-liuli-nav-pin", !!cfg.navPin);
         if (cfg.navPin && document.body.dataset.liuliRNav) delete document.body.dataset.liuliRNav;
+        /* 头像挂点：last = 组内最后一条（默认），first = 组内第一条。
+         * bubbles.css 按这个属性切头像显示、尾巴上下和圆角方向。 */
+        const avatarAnchor = cfg.avatarAnchor === "first" ? "first" : "last";
+        const prevAnchor = document.body.dataset.liuliAvatarAnchor;
+        if (prevAnchor !== avatarAnchor) {
+            document.body.dataset.liuliAvatarAnchor = avatarAnchor;
+            /* 模式切换时清掉 last 模式留下的头像吸附位移；平时每 1.5s 的
+             * applyAll 不会重复清，避免把吸附中的头像弹回去。 */
+            if (prevAnchor && typeof window.__liuliStickReset === "function") {
+                try { window.__liuliStickReset(); } catch (e) {}
+            }
+        }
         applyNav();
         applyBar();
         document.querySelectorAll(".q-context-menu.aio-right-click-menu").forEach(applyMenu);
@@ -267,6 +279,14 @@ export function buildLayoutControls(host) {
     host.appendChild(el("div", "liuli-panel__group", "窗口按钮"));
     seg(host, "标题栏控件", [["float", "悬浮"], ["native", "常驻（原版）"]], cfg.titlebar === "native" ? "native" : "float", v => { cfg.titlebar = v; save(); });
     host.appendChild(el("div", "liuli-field__hint", "悬浮：最小化 / 关闭按钮和头像平时隐藏，鼠标移到窗口顶边左右两端时出现。常驻：恢复 QQ 原来的标题栏，按钮一直显示。"));
+
+    /* 头像位置（连续消息合并时，头像挂在第一条还是最后一条） */
+    host.appendChild(el("div", "liuli-panel__group", "消息"));
+    seg(host, "头像位置", [["last", "最后一条"], ["first", "第一条"]],
+        cfg.avatarAnchor === "first" ? "first" : "last",
+        v => { cfg.avatarAnchor = v; save(); });
+    host.appendChild(el("div", "liuli-field__hint",
+        "同一组连续消息只显示一个头像。选「最后一条」时头像和尾巴在组尾；选「第一条」时头像和尾巴在组头。中间有人打断会重新分组，两组各显示一次。"));
 
     /* 右键菜单 */
     host.appendChild(el("div", "liuli-panel__group", "右键菜单"));
