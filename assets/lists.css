@@ -332,7 +332,7 @@ body .recent-contact .recent-contact-item.recent-contact-item--top:not(#ll)::aft
   display: block !important;
   position: absolute !important;
   right: 8px !important;
-  top: 50% !important;
+  top: calc(50% + 8px) !important;
   width: 13px !important;
   height: 13px !important;
   margin-top: -6.5px !important;
