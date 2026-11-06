@@ -19,6 +19,8 @@ import {
 beginBoot();
 installDiagRuntime();
 const ASSET_BASE = "local://profile/plugins/" + SLUG + "/assets/";
+// 每次启动换一个 query：local:// 的 file loader 会把旧 CSS 缓存住，改文件后重启也拿旧的
+const ASSET_TAG = "?v=" + Date.now();
 const FILES = ["wallpaper.css", "qq-tokens.css", "palette.css", "liuli.css", "typography.css", "panel.css", "settings-page.css", "details.css", "no-dividers.css", "input-bar.css", "bubbles.css", "layout.css", "lists.css", "motion.css", "markdown.css", "layout-custom.css"];
 const STYLE_ID = "liuli-dsh-theme";
 const WALLPAPER = ASSET_BASE + "wallpaper.jpg";
@@ -389,8 +391,8 @@ function applyOverrides() {
 }
 
 async function loadText(name) {
-    // no-store：插件更新后重启 QQ 也要拿到磁盘上的新 CSS，不能被 local:// 的旧缓存挡住
-    const response = await fetch(ASSET_BASE + name, { cache: "no-store" });
+    // no-store + 每次启动的 query：插件更新后重启 QQ 也要拿到磁盘上的新 CSS
+    const response = await fetch(ASSET_BASE + name + ASSET_TAG, { cache: "no-store" });
     if (!response.ok) throw new Error(name + " HTTP " + response.status);
     return await response.text();
 }
