@@ -100,6 +100,8 @@ function Install-LiteLoader([string]$qqDir, [string]$profile, [string]$zipPath, 
     if (-not (Test-Path -LiteralPath $packageFile -PathType Leaf)) { throw '找不到 QQ resources/app/package.json' }
     if (-not (Test-Path -LiteralPath $dllFile -PathType Leaf)) { throw '找不到 QQNT.dll' }
 
+    New-Item -ItemType Directory -Force -Path $profile | Out-Null
+    New-Item -ItemType Directory -Force -Path $coreDir | Out-Null
     $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
     $backupRoot = Join-Path $qqDir 'liuli-backups'
     $backup = Join-Path $backupRoot $stamp
@@ -117,7 +119,14 @@ function Install-LiteLoader([string]$qqDir, [string]$profile, [string]$zipPath, 
     try {
         # 1) 解出 core，保留已有 plugins/data
         $tmpCore = Join-Path $profile ('.liuli-core-' + [guid]::NewGuid().ToString('N'))
-        if ($script:CoreBytes) { Expand-ZipBytes $script:CoreBytes $tmpCore } else { Expand-Archive -LiteralPath $zipPath -DestinationPath $tmpCore -Force }
+        if ($script:CoreBytes) {
+            $coreTmpZip = Join-Path $profile ('.liuli-core-' + [guid]::NewGuid().ToString('N') + '.zip')
+            [IO.File]::WriteAllBytes($coreTmpZip, $script:CoreBytes)
+            Expand-Archive -LiteralPath $coreTmpZip -DestinationPath $tmpCore -Force
+            Remove-Item -LiteralPath $coreTmpZip -Force -ErrorAction SilentlyContinue
+        } else {
+            Expand-Archive -LiteralPath $zipPath -DestinationPath $tmpCore -Force
+        }
         New-Item -ItemType Directory -Force -Path $coreDir | Out-Null
         foreach ($item in @(Get-ChildItem -LiteralPath $tmpCore -Force)) {
             $target = Join-Path $coreDir $item.Name
@@ -262,6 +271,7 @@ function Restore-LiteLoader([string]$qqDir, [string]$backup, [scriptblock]$Log) 
     $Log.Invoke('已复原 LiteLoaderQQNT / QQ 补丁：' + $backup)
     return $true
 }
+
 
 
 

@@ -278,8 +278,15 @@ function Install-Plugin([string]$profile, [string]$qqDir) {
     $record | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $backup 'record.json') -Encoding UTF8
 
     $staging = Join-Path $profile ('.liuli-installing-' + [guid]::NewGuid().ToString('N'))
+    $payloadTmp = $null
     try {
-        if ($script:PayloadBytes) { Expand-ZipBytes $script:PayloadBytes $staging } else { Expand-Archive -LiteralPath $script:Payload -DestinationPath $staging -Force }
+        if ($script:PayloadBytes) {
+            $payloadTmp = Join-Path $profile ('.liuli-payload-' + [guid]::NewGuid().ToString('N') + '.zip')
+            [IO.File]::WriteAllBytes($payloadTmp, $script:PayloadBytes)
+            Expand-Archive -LiteralPath $payloadTmp -DestinationPath $staging -Force
+        } else {
+            Expand-Archive -LiteralPath $script:Payload -DestinationPath $staging -Force
+        }
         if (-not (Test-Path -LiteralPath (Join-Path $staging 'manifest.json') -PathType Leaf)) {
             throw '安装包缺少 manifest.json'
         }
@@ -297,6 +304,8 @@ function Install-Plugin([string]$profile, [string]$qqDir) {
             } catch { }
         }
         throw
+    } finally {
+        try { if ($payloadTmp -and (Test-Path -LiteralPath $payloadTmp)) { Remove-Item -LiteralPath $payloadTmp -Force } } catch { }
     }
     return $backup
 }
