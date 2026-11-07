@@ -100,7 +100,7 @@ async function extractSource() {
      * 有了这一步，首帧渲染就能直接拿到比例，不会因为 ratioKnown:false 画成拉伸。 */
     try {
         if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-            llImageRatioCache.set(src, img.naturalWidth / img.naturalHeight);
+            rememberImageRatio(src, img.naturalWidth / img.naturalHeight);
         }
     } catch (e) { /* 静默 */ }
     const size = 64;
@@ -239,6 +239,25 @@ function deriveVars(mcu, sourceHex, isDark, roles) {
 async function applyDynamicPalette() {
     if (window.__liuliPaletteApplied) return;
     window.__liuliPaletteApplied = true;
+    /* 只有主窗口从壁纸取色：聊天独立窗 / 设置窗直接复用主窗口算好的变量。
+     * 以前每个窗口都 new Image 解码整张壁纸，多开时内存翻几倍，设置窗也白白多一份。
+     * 注意 boot / blank 仍走取色：主窗口刚启动时 hash 可能还没写成 #/main。 */
+    const paletteScope = llScopeName();
+    if (paletteScope === "aux" || paletteScope === "setting") {
+        try {
+            const cached = JSON.parse(localStorage.getItem("liuli-palette-cache") || "null");
+            if (cached && cached.vars && typeof cached.vars === "object") {
+                for (const k in cached.vars) {
+                    if (cached.vars[k] === null) document.body.style.removeProperty(k);
+                    else document.body.style.setProperty(k, cached.vars[k]);
+                }
+                if (cached.source) document.body.dataset.liuliSource = cached.source;
+                document.body.toggleAttribute("data-liuli-other-solid", !!cached.otherSolid);
+                try { llApplyModeSettings(); } catch (e) {}
+            }
+        } catch (e) { /* 没有缓存就保持 palette.css 的静态兜底 */ }
+        return;
+    }
     let source = DEFAULT_SOURCE;
     try { source = await extractSource(); } catch (e) { source = DEFAULT_SOURCE; }
     const mcu = await import(ASSET_BASE + "mcu.js");
@@ -259,6 +278,14 @@ async function applyDynamicPalette() {
     body.dataset.liuliSource = source;
     // 对方的气泡选了彩色（实底）配色：气泡尾巴可以压进气泡 1px 盖住缝（bubbles.css，#16）
     body.toggleAttribute("data-liuli-other-solid", vars["--ll-bubble-other"] != null);
+    /* 把最终变量缓存给其它窗口；只存字符串，几十个键，不碰壁纸。 */
+    try {
+        localStorage.setItem("liuli-palette-cache", JSON.stringify({
+            source: source,
+            vars: vars,
+            otherSolid: vars["--ll-bubble-other"] != null
+        }));
+    } catch (e) { /* 配额满也不影响主窗口 */ }
     // 色板换了明暗，随模式变化的遮罩 / 阴影也要跟着重写（需求 A.2）
     llApplyModeSettings();
     console.log("[liuli-dsh-theme] wallpaper source = " + source + " (brand " + vars["--ll-brand"] + ")");
@@ -1912,15 +1939,24 @@ function llFmtBytes(n) {
  * ════════════════════════════════════════════════════════════ */
 
 const LL_WP_DEFAULTS = { src: null, area: null, fit: "cover" };
+let llWpStateRaw = null;
+let llWpStateVal = null;
 
 function loadWallpaperState() {
     try {
         const raw = localStorage.getItem(LL_WALLPAPER_KEY);
-        if (!raw) return Object.assign({}, LL_WP_DEFAULTS);
+        if (raw === llWpStateRaw && llWpStateVal) return llWpStateVal;
+        if (!raw) {
+            llWpStateRaw = raw;
+            llWpStateVal = Object.assign({}, LL_WP_DEFAULTS);
+            return llWpStateVal;
+        }
         const parsed = raw.charAt(0) === "{" ? JSON.parse(raw) : { src: raw };
         const st = Object.assign({}, LL_WP_DEFAULTS, parsed);
         // 兼容早期滑条版存下的字段（scale/posX/posY）——直接丢掉，回落到 cover
         if (!st.area || typeof st.area.w !== "number") st.area = null;
+        llWpStateRaw = raw;
+        llWpStateVal = st;
         return st;
     } catch (e) {
         return Object.assign({}, LL_WP_DEFAULTS);
@@ -1939,6 +1975,8 @@ function saveWallpaperState(state, broadcast) {
         const raw = JSON.stringify(state);
         valueLen = raw.length;
         localStorage.setItem(LL_WALLPAPER_KEY, raw);
+        llWpStateRaw = raw;
+        llWpStateVal = state;
         ok = true;
     } catch (e) {
         error = llErrText(e);
@@ -1964,6 +2002,16 @@ function saveWallpaperState(state, broadcast) {
 
 /* 图片宽高比缓存：按 src 存，避免异步竞态拿到旧图的比例 */
 const llImageRatioCache = new Map();
+/* 只留最近几张：key 是整条 dataURL，壁纸换多了会把几十 MB 字符串一直钉在 Map 里。 */
+function rememberImageRatio(src, ratio) {
+    if (!src || !(ratio > 0)) return;
+    llImageRatioCache.set(src, ratio);
+    while (llImageRatioCache.size > 3) {
+        const oldest = llImageRatioCache.keys().next().value;
+        if (oldest === undefined) break;
+        llImageRatioCache.delete(oldest);
+    }
+}
 function getImageRatio(src) {
     return llImageRatioCache.get(src) || null;
 }
@@ -1975,7 +2023,7 @@ function primeImageRatio(src) {
         img.onload = function () {
             const r = img.naturalWidth > 0 && img.naturalHeight > 0
                 ? img.naturalWidth / img.naturalHeight : null;
-            if (r) llImageRatioCache.set(src, r);
+            if (r) rememberImageRatio(src, r);
             resolve(r);
         };
         img.onerror = function () { resolve(null); };
@@ -2054,6 +2102,76 @@ function bgGeometry(area, imageRatio, viewportRatio) {
     };
 }
 
+/* 性能：壁纸只给主窗口 / 背景用降采样副本。
+ * 每个窗口都解码原图 + 铺 dataURL 时，4K 壁纸开 3 个窗口就是几百 MB；
+ * 背景实际只需要窗口尺寸级别的分辨率。 */
+let llSmallWall = { src: "", data: "", failed: "", pendingSrc: "", pending: null };
+
+function llPerfWallCfg() {
+    try {
+        const c = JSON.parse(localStorage.getItem("liuli-layout") || "{}");
+        return {
+            mainOnly: c.perfMainWallOnly !== false,
+            small: c.perfSmallWall !== false
+        };
+    } catch (e) {
+        return { mainOnly: true, small: true };
+    }
+}
+
+function llSmallWallpaperNow(src) {
+    if (!llPerfWallCfg().small) return src;
+    if (llSmallWall.src === src && llSmallWall.data) return llSmallWall.data;
+    if (llSmallWall.failed === src) return src;
+    return null;
+}
+
+function primeSmallWallpaper(src) {
+    if (llSmallWall.src === src && llSmallWall.data) return Promise.resolve(llSmallWall.data);
+    if (llSmallWall.failed === src) return Promise.resolve(src);
+    if (llSmallWall.pending && llSmallWall.pendingSrc === src) return llSmallWall.pending;
+    const p = new Promise(function (resolve) {
+        const img = new Image();
+        img.onload = function () {
+            try {
+                const w = img.naturalWidth || 0;
+                const h = img.naturalHeight || 0;
+                if (!w || !h) { llSmallWall.failed = src; resolve(src); return; }
+                rememberImageRatio(src, w / h);
+                const max = 1920;
+                const scale = Math.min(1, max / Math.max(w, h));
+                if (scale >= 0.999) {
+                    llSmallWall = { src: src, data: src, failed: "", pendingSrc: "", pending: null };
+                    resolve(src);
+                    return;
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(w * scale));
+                canvas.height = Math.max(1, Math.round(h * scale));
+                const ctx = canvas.getContext("2d");
+                if (!ctx) { llSmallWall.failed = src; resolve(src); return; }
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                let data = "";
+                try { data = canvas.toDataURL("image/jpeg", 0.86); } catch (e) {}
+                if (!data) { llSmallWall.failed = src; resolve(src); return; }
+                llSmallWall = { src: src, data: data, failed: "", pendingSrc: "", pending: null };
+                resolve(data);
+            } catch (e) {
+                llSmallWall.failed = src;
+                resolve(src);
+            }
+        };
+        img.onerror = function () {
+            llSmallWall.failed = src;
+            resolve(src);
+        };
+        img.src = src;
+    });
+    llSmallWall.pendingSrc = src;
+    llSmallWall.pending = p;
+    return p;
+}
+
 function ensureWallpaperStyle() {
     let el = document.getElementById("liuli-wallpaper-style");
     if (!el) {
@@ -2067,8 +2185,29 @@ function ensureWallpaperStyle() {
 function renderWallpaper(state, reason) {
     const el = ensureWallpaperStyle();
     llWpLast = state;
+    const perf = llPerfWallCfg();
+    const scope = llScopeName();
+    /* 设置窗永远不铺壁纸；辅助聊天窗在「壁纸仅主窗口」开时也不铺。
+     * 这样每个窗口不再各自解码一份 4K 图。 */
+    if (scope === "setting" || (perf.mainOnly && scope === "aux")) {
+        el.textContent = "";
+        if (reason) {
+            auditWallpaper("apply", {
+                scope: scope, styleLen: 0, ratioKnown: false,
+                fit: (state && state.fit) || "cover", area: null,
+                skipped: "perf-non-main-window", reason: reason, rev: llWallpaperRev()
+            });
+        }
+        return;
+    }
+    if (!perf.small) {
+        /* 关掉低清壁纸时释放降采样副本 */
+        llSmallWall.data = "";
+        llSmallWall.src = "";
+    }
     if (!state || !state.src) {
         el.textContent = "";
+        llSmallWall = { src: "", data: "", failed: "", pendingSrc: "", pending: null };
         // 只有明确"为什么渲染"时才写审计（resize 之类的重绘不刷屏）
         if (reason) {
             auditWallpaper("apply", {
@@ -2078,6 +2217,25 @@ function renderWallpaper(state, reason) {
             });
         }
         return;
+    }
+    let drawSrc = state.src;
+    if (perf.small) {
+        drawSrc = llSmallWallpaperNow(state.src);
+        if (!drawSrc) {
+            /* 先在后台把图缩到最长边 1920，再落笔；宁可白一帧也不先按原图铺一份。 */
+            el.textContent = "";
+            primeSmallWallpaper(state.src).then(function () {
+                if (llSmallWallpaperNow(state.src)) renderWallpaper(loadWallpaperState(), "small-wall");
+            });
+            if (reason) {
+                auditWallpaper("apply", {
+                    scope: llScopeName(), styleLen: 0, ratioKnown: !!getImageRatio(state.src),
+                    fit: state.fit || "cover", area: state.area || null,
+                    skipped: "wallpaper-downscaling", reason: reason, rev: llWallpaperRev()
+                });
+            }
+            return;
+        }
     }
     const ir = getImageRatio(state.src);
     let g = bgGeometry(state.area, ir, window.innerWidth / window.innerHeight, state.fit || "cover");
@@ -2105,7 +2263,7 @@ function renderWallpaper(state, reason) {
         "  z-index: 0 !important; pointer-events: none !important;" +
         "  background-image: linear-gradient(rgba(var(--ll-veil-rgb, var(--ll-scrim-rgb)), var(--ll-wallpaper-dim, 0.18))," +
         "    rgba(var(--ll-veil-rgb, var(--ll-scrim-rgb)), var(--ll-wallpaper-dim, 0.18))),\n" +
-        "    url(\"" + state.src + "\") !important;" +
+        "    url(\"" + drawSrc + "\") !important;" +
         "  background-position: " + g.position + " !important;" +
         "  background-size: " + g.size + " !important;" +
         "  background-repeat: no-repeat !important;" +
@@ -2118,6 +2276,13 @@ function renderWallpaper(state, reason) {
         });
     }
 }
+
+/* 性能开关切换后立即重画/清掉壁纸（layout-custom 的 applyAll 会调用） */
+try {
+    window.__liuliWallpaperRefresh = function () {
+        try { renderWallpaper(loadWallpaperState(), "perf-toggle"); } catch (e) {}
+    };
+} catch (e) {}
 
 /* 启动兜底（契约第四节第 4 条）：localStorage 里明明有壁纸，但 #app::before
  * 没有背景图（样式注入过早/被覆盖），600ms 后再渲染一次。 */
@@ -2405,6 +2570,9 @@ function buildWallpaperControls(host) {
         let error = "";
         try {
             localStorage.removeItem(LL_WALLPAPER_KEY);
+            llWpStateRaw = null;
+            llWpStateVal = null;
+            llSmallWall = { src: "", data: "", failed: "", pendingSrc: "", pending: null };
             // 写 revision 让主窗口的轮询也能收到"移除"（只删大键的话轮询会以为没变化）
             localStorage.setItem(LL_WALLPAPER_REV_KEY, String(Date.now()));
         } catch (e) {
@@ -2429,7 +2597,7 @@ function buildWallpaperControls(host) {
         chooseBtn.disabled = true;
         chooseBtn.textContent = "读取中…";
         readImageFile(f, 2560).then(function (r) {
-            llImageRatioCache.set(r.dataUrl, r.ratio);
+            rememberImageRatio(r.dataUrl, r.ratio);
             const prev = loadWallpaperState();
             llApplyWallpaper({ src: r.dataUrl, area: null, fit: prev.fit || "cover" });
             fileName.textContent = f.name;
