@@ -926,6 +926,16 @@ body[data-hash^="#/av"] #app::before,
 body[data-hash^="#/av"] #app::after {
   content: none !important;
 }
+/* 兜底：不依赖路由 hash。新 QQ/不同入口下通话窗口的 hash 可能不是 #/av，
+ * 但成员画面一定在 .video-content 里；一旦有它，就还原 #app 的层叠上下文和背景层。 */
+body:not([data-liuli-scope="main"]):has(.video-content) #app {
+  isolation: auto !important;
+  background: transparent !important;
+}
+body:not([data-liuli-scope="main"]):has(.video-content) #app::before,
+body:not([data-liuli-scope="main"]):has(.video-content) #app::after {
+  content: none !important;
+}
 /* 独立窗口里 QQ 写死的实底（深色 rgb(34,34,34) / 浅色 rgb(229,238,255)） */
 body:not([data-liuli-scope="main"]) .draggable-view__container:not(.window-title-bar):not(#ll):not(#ll),
 body:not([data-liuli-scope="main"]) .container-content:not(#ll):not(#ll),

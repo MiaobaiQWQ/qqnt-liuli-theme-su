@@ -992,6 +992,11 @@ function moveSenderIntoBubble() {
  * 发送者身份用「名字文本」判定（名字被搬进气泡后仍然可读），
  * 取不到名字时退回头像 src。
  */
+/* 跨虚拟列表边界的发送者缓存：hash -> 上一条消息的 sender key。
+ * 列表只渲染视口附近节点，首节点的 previousElementSibling 经常是空的；
+ * 没有这层缓存就会把它当成新组开头，出现「一条消息一个头像」。 */
+var llGroupKeyCache = new Map();
+
 function groupMessages() {
     try {
         var list = document.querySelectorAll(".message-container");
@@ -1014,21 +1019,49 @@ function groupMessages() {
             return "";
         }
 
+        var chat = llChatKey() || "";
         var keys = [];
-        for (var i = 0; i < list.length; i++) keys.push(keyOf(list[i]));
+        var ids = [];
+        for (var i = 0; i < list.length; i++) {
+            keys.push(keyOf(list[i]));
+            var item = list[i].closest ? list[i].closest(".ml-item[id]") : null;
+            ids.push(item && /^\d+$/.test(item.id) ? item.id : null);
+        }
 
         for (var j = 0; j < list.length; j++) {
             var mc = list[j];
             var key = keys[j];
             if (!key) { mc.dataset.liuliG = ""; continue; }
-            var prevSame = j > 0 && keys[j - 1] === key;
+            var prevKey = null;
+            var prevKnown = false;
+            if (j > 0) {
+                prevKey = keys[j - 1];
+                prevKnown = true;
+            } else if (ids[j]) {
+                try {
+                    var prevId = (BigInt(ids[j]) - 1n).toString();
+                    if (llGroupKeyCache.has(chat + "|" + prevId)) {
+                        prevKey = llGroupKeyCache.get(chat + "|" + prevId);
+                        prevKnown = true;
+                    }
+                } catch (e) { /* 非数字 id，忽略 */ }
+            }
             var nextSame = j < list.length - 1 && keys[j + 1] === key;
+            var prevSame = prevKnown && prevKey === key;
             var g;
-            if (!prevSame && !nextSame) g = "single";
+            if (!prevKnown) {
+                /* 首节点没有 previous 可比较：有下一条同发送者时先按 mid 画，
+                 * 不把边界误判成组头；真正的第一条在滚到顶后会重新计算。 */
+                g = nextSame ? "mid" : "single";
+            } else if (!prevSame && !nextSame) g = "single";
             else if (!prevSame && nextSame) g = "first";
             else if (prevSame && nextSame) g = "mid";
             else g = "last";
             if (mc.dataset.liuliG !== g) mc.dataset.liuliG = g;
+            if (ids[j]) {
+                llGroupKeyCache.set(chat + "|" + ids[j], key);
+                if (llGroupKeyCache.size > 8000) llGroupKeyCache.clear();
+            }
         }
     } catch (e) { /* 静默 */ }
 }

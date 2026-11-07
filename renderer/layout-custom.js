@@ -8,7 +8,7 @@
 
 const KEY = "liuli-layout";
 const SEEN_KEY = "liuli-layout-seen";
-const DEFAULTS = { menuCompact: false, menuOrder: [], barOrder: [], barPinned: 1, navHidden: [], titlebar: "float", navPin: false, avatarAnchor: "last" };
+const DEFAULTS = { menuCompact: false, menuOrder: [], barOrder: [], barPinned: 1, navHidden: [], titlebar: "float", navPin: false, avatarAnchor: "last", nickname: "all" };
 
 const ICON_UP = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
 const ICON_DOWN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>';
@@ -181,6 +181,9 @@ export function applyAll() {
          * 会让 CSS 继续按展开态算材质（唯一一处跨模块清理）。 */
         document.body.toggleAttribute("data-liuli-nav-pin", !!cfg.navPin);
         if (cfg.navPin && document.body.dataset.liuliRNav) delete document.body.dataset.liuliRNav;
+        /* 消息昵称：all = 全部显示；media = 媒体消息隐藏；none = 全部隐藏。 */
+        const nickname = cfg.nickname === "none" ? "none" : (cfg.nickname === "media" ? "media" : "all");
+        if (document.body.dataset.liuliNickname !== nickname) document.body.dataset.liuliNickname = nickname;
         /* 头像挂点：last = 组内最后一条（默认），first = 组内第一条。
          * bubbles.css 按这个属性切头像显示、尾巴上下和圆角方向。 */
         const avatarAnchor = cfg.avatarAnchor === "first" ? "first" : "last";
@@ -287,6 +290,11 @@ export function buildLayoutControls(host) {
         v => { cfg.avatarAnchor = v; save(); });
     host.appendChild(el("div", "liuli-field__hint",
         "同一组连续消息只显示一个头像。选「最后一条」时头像和尾巴在组尾；选「第一条」时头像和尾巴在组头。中间有人打断会重新分组，两组各显示一次。"));
+    seg(host, "消息昵称", [["all", "全部显示"], ["media", "媒体隐藏"], ["none", "全部隐藏"]],
+        cfg.nickname === "none" ? "none" : (cfg.nickname === "media" ? "media" : "all"),
+        v => { cfg.nickname = v; save(); });
+    host.appendChild(el("div", "liuli-field__hint",
+        "媒体隐藏：图片、表情、语音、文件、转发、卡片消息不显示昵称；全部隐藏：所有消息都不显示。"));
 
     /* 右键菜单 */
     host.appendChild(el("div", "liuli-panel__group", "右键菜单"));
@@ -367,3 +375,4 @@ export function buildLayoutSection(host) {
     host.appendChild(box);
     buildLayoutControls(box);
 }
+

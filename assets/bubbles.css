@@ -41,6 +41,28 @@
   padding: 8px 10px !important;
 }
 
+/* ── 2.1 消息昵称显示模式（#47） ──
+ * all：全部显示（默认）；media：媒体消息隐藏；none：全部隐藏。
+ * 只隐藏 .user-name，不影响头像、气泡和标签。 */
+body[data-liuli-nickname="none"] .message-container .user-name {
+  display: none !important;
+}
+body[data-liuli-nickname="media"] .message-container:has(
+    .mix-message__container--pic,
+    .mix-message__container--image,
+    .mix-message__container--video,
+    .mix-message__container--emoji,
+    .mix-message__container--marketface,
+    .ark-msg-content-container,
+    .forward-msg,
+    [class*="voice-message"],
+    [class*="voice-msg"],
+    [class*="file-message"],
+    [class*="file-msg"]
+  ) .user-name {
+  display: none !important;
+}
+
 /* ── 2. 发送者名字：搬进气泡内部后变成顶部一行 ── */
 .msg-content-container .user-name {
   display: flex !important;
@@ -234,13 +256,8 @@
   display: none !important;
 }
 
-/* 头像宽度不再强制 —— grid 列宽由 QQ 的 grid-template-columns 决定，\n * 单独改子元素宽度会让列宽计算错乱（实测列被撑到 765px）。 */
-
-/* 中间/末条没有头像时，气泡要顶到与头像同列，不能左右跳 */
-.message-container[data-liuli-g="mid"],
-.message-container[data-liuli-g="last"] {
-  grid-template-columns: var(--liuli-avatar-col, 0) 1fr !important;
-}
+/* 头像宽度不再强制 —— grid 列宽由 QQ 的 grid-template-columns 决定，
+ * 单独改子元素宽度会让列宽计算错乱（实测列被撑到 765px）。 */
 
 /* 组内消息贴紧一点，组间拉开 */
 .message-container[data-liuli-g="mid"],
@@ -475,12 +492,27 @@
  * 这是 QQ 自己算出来的右对齐布局，justify-items / justify-self 都改不动。
  * 只能直接重写列定义：让气泡列紧跟头像列。
  * ════════════════════════════════════════════════════════════ */
+/* 行模板：所有组内位置共用同一套 6 列，不再在 first/single 与 mid/last
+ * 之间切换列数（切换会让切换会话时先按一种模板画、再按另一种重排，头像/图片
+ * 就会闪一下放大缩小 —— #44；多选时勾选列也会被 0 宽列裁掉 —— #25）。
+ * 两端留 auto：多选勾选列插在行首/行尾时能拿到宽度；没有勾选列时自然为 0。
+ * 内容列限到 720px，避免长文本/图片把整个窗口撑满（#31）。 */
 .message-container:has(.msg-content-container.container--others) {
-  grid-template-columns: 0px 32px 8px minmax(0, 1fr) 0px 0px !important;
+  grid-template-columns: auto 32px 8px minmax(0, 720px) 0px 0px !important;
+  justify-content: start !important;
 }
-
 .message-container:has(.msg-content-container.container--self) {
-  grid-template-columns: 0px minmax(0, 1fr) 8px auto 32px 0px !important;
+  grid-template-columns: 0px minmax(0, 720px) 8px auto 32px auto !important;
+  justify-content: end !important;
+}
+/* 内容列被限宽后，自己消息仍要贴右边，别停在 720px 列的左侧 */
+.message-container:has(.msg-content-container.container--self) > .message-content__wrapper,
+.message-container:has(.msg-content-container.container--self) > .msg-content-container {
+  justify-self: end !important;
+}
+/* 多选态：勾选圈可能超出行的盒子，别被行裁掉 */
+body:has(.message-container [class*="checkbox"]) .message-container {
+  overflow: visible !important;
 }
 
 /* ════════════════════════════════════════════════════════════
