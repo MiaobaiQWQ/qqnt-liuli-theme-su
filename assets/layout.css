@@ -1657,3 +1657,37 @@ body .chat-func-bar.liuli-expanded .bar-more-menu .bar-more-menu-inner.q-context
   margin-top: -10px !important;
   margin-left: -29px !important;  /* 小三角中心在格子左边 + 29px */
 }
+
+/* ════════════════════════════════════════════════════════════
+ * 性能开关（布局 → 消息 → 性能）
+ * ------------------------------------------------------------
+ * 1. 减少动效：QQ + 琉璃的 animation/transition 全部压到 0；
+ * 2. 关闭模糊：所有 backdrop-filter 置空，减少 GPU 合成；
+ * 3. 关闭聊天纹理：隐藏 QQ 的聊天背景纹理层。
+ * ════════════════════════════════════════════════════════════ */
+body[data-liuli-no-motion] *,
+body[data-liuli-no-motion] *::before,
+body[data-liuli-no-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+body[data-liuli-no-blur] *,
+body[data-liuli-no-blur] *::before,
+body[data-liuli-no-blur] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body[data-liuli-no-texture] .texture-background,
+body[data-liuli-no-texture] [class*="texture-background"],
+body[data-liuli-no-texture] .chat-msg-area .background-mask,
+body[data-liuli-no-texture] .chat-msg-area__vlist .background-mask,
+body[data-liuli-no-texture] .chat-msg-area canvas {
+  display: none !important;
+}
+body[data-liuli-no-texture] .chat-msg-area {
+  background-image: none !important;
+}

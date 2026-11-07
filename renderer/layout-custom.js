@@ -8,7 +8,7 @@
 
 const KEY = "liuli-layout";
 const SEEN_KEY = "liuli-layout-seen";
-const DEFAULTS = { menuCompact: false, menuOrder: [], barOrder: [], barPinned: 1, navHidden: [], titlebar: "float", navPin: false, avatarAnchor: "last", nickname: "all" };
+const DEFAULTS = { menuCompact: false, menuOrder: [], barOrder: [], barPinned: 1, navHidden: [], titlebar: "float", navPin: false, avatarAnchor: "last", nickname: "all", perfNoMotion: false, perfNoBlur: false, perfNoTexture: false };
 
 const ICON_UP = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>';
 const ICON_DOWN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>';
@@ -184,6 +184,10 @@ export function applyAll() {
         /* 消息昵称：all = 全部显示；media = 媒体消息隐藏；none = 全部隐藏。 */
         const nickname = cfg.nickname === "none" ? "none" : (cfg.nickname === "media" ? "media" : "all");
         if (document.body.dataset.liuliNickname !== nickname) document.body.dataset.liuliNickname = nickname;
+        /* 性能开关：用 body 属性驱动 layout.css 的全局覆盖。 */
+        document.body.toggleAttribute("data-liuli-no-motion", !!cfg.perfNoMotion);
+        document.body.toggleAttribute("data-liuli-no-blur", !!cfg.perfNoBlur);
+        document.body.toggleAttribute("data-liuli-no-texture", !!cfg.perfNoTexture);
         /* 头像挂点：last = 组内最后一条（默认），first = 组内第一条。
          * bubbles.css 按这个属性切头像显示、尾巴上下和圆角方向。 */
         const avatarAnchor = cfg.avatarAnchor === "first" ? "first" : "last";
@@ -295,6 +299,16 @@ export function buildLayoutControls(host) {
         v => { cfg.nickname = v; save(); });
     host.appendChild(el("div", "liuli-field__hint",
         "媒体隐藏：图片、表情、语音、文件、转发、卡片消息不显示昵称；全部隐藏：所有消息都不显示。"));
+    /* 性能：关闭原生/主题动效、模糊、聊天纹理，降低 GPU/CPU 占用 */
+    host.appendChild(el("div", "liuli-panel__group", "性能"));
+    seg(host, "减少动效", [["0", "关"], ["1", "开"]], cfg.perfNoMotion ? "1" : "0",
+        v => { cfg.perfNoMotion = v === "1"; save(); });
+    seg(host, "关闭模糊", [["0", "关"], ["1", "开"]], cfg.perfNoBlur ? "1" : "0",
+        v => { cfg.perfNoBlur = v === "1"; save(); });
+    seg(host, "关闭聊天纹理", [["0", "关"], ["1", "开"]], cfg.perfNoTexture ? "1" : "0",
+        v => { cfg.perfNoTexture = v === "1"; save(); });
+    host.appendChild(el("div", "liuli-field__hint",
+        "减少动效：停掉 QQ 和琉璃的过渡/动画；关闭模糊：移除所有毛玻璃；关闭聊天纹理：隐藏 QQ 的聊天背景纹理。三项都可随时切回。"));
 
     /* 右键菜单 */
     host.appendChild(el("div", "liuli-panel__group", "右键菜单"));

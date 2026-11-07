@@ -1169,7 +1169,12 @@ function installAvatarStick() {
  *   2. 用 Web Animations API 播动画（不改 style，Vue 无感）；
  *   3. 不插入、不移动任何节点。
  * ════════════════════════════════════════════════════════════ */
-var LL_REDUCED = (function () { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } })();
+function llReducedMotion() {
+    try {
+        return document.body.hasAttribute("data-liuli-no-motion") ||
+            matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (e) { return false; }
+}
 var LL_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 function llNorm(s) { return (s || "").replace(/\s+/g, " ").trim(); }
@@ -1190,7 +1195,7 @@ function llVisibleIn(container, sel) {
 
 /* 逐行上浮入场（DSH 会话列表 liuli-treeitem-rise 同款） */
 function llRiseIn(els, step) {
-    if (LL_REDUCED || !els.length || typeof els[0].animate !== "function") return;
+    if (llReducedMotion() || !els.length || typeof els[0].animate !== "function") return;
     els.slice(0, 18).forEach(function (el, i) {
         try {
             el.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }],
@@ -1227,7 +1232,7 @@ function llWatchContactList() {
         var id = gained.getAttribute("data-contact-id");
         if (id === llSel.id) return;
         llSel.id = id;
-        if (LL_REDUCED || typeof gained.animate !== "function") return;
+        if (llReducedMotion() || typeof gained.animate !== "function") return;
         var nr = gained.getBoundingClientRect();
         var lr = lost && lost.isConnected ? lost.getBoundingClientRect() : null;
         try {
@@ -1474,14 +1479,14 @@ function llMotionPass(added) {
             items.forEach(function (it) { var v = llMsgId(it); if (v !== null && (m === null || v > m)) m = v; });
             llMsgSeen.max = m;
             // 换会话：消息区整体轻轻浮上来
-            if (first && !LL_REDUCED) {
+            if (first && !llReducedMotion()) {
                 var area = document.querySelector(".chat-msg-area");
                 if (area && area.animate) area.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }],
                     { duration: 280, easing: LL_EASE });
             }
             return;
         }
-        if (LL_REDUCED || !added || !added.length) return;
+        if (llReducedMotion() || !added || !added.length) return;
         added.forEach(function (it) {
             var v = llMsgId(it);
             if (v === null || llMsgSeen.max === null || v <= llMsgSeen.max) return;
@@ -3626,7 +3631,7 @@ function llCurrentPeer() {
 }
 
 function llAnimateEnter(items) {
-    if (!items.length || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!items.length || llReducedMotion()) return;
     // 越靠下（越新）越先出来
     items.sort((a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top);
     items.slice(0, LL_ENTER_MAX).forEach((el, i) => {
