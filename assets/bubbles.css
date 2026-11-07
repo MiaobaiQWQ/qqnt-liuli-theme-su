@@ -945,3 +945,79 @@ body[data-liuli-avatar-anchor="first"] .message-container:is([data-liuli-g="mid"
 body[data-liuli-avatar-anchor="first"] .message-container:is([data-liuli-g="mid"], [data-liuli-g="last"]) .msg-content-container.container--self:not(.container--personalization) {
   border-radius: 16px !important;
 }
+
+/* ── 头像悬浮：昵称 / 等级 / 身份标签浮层（#47） ── */
+#liuli-name-tip {
+  position: fixed;
+  z-index: 2147483000;
+  display: none;
+  align-items: center;
+  max-width: min(360px, calc(100vw - 16px));
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--ll-on-glass-rgb, 226, 226, 229), 0.14);
+  background: var(--ll-float-bg, rgba(var(--ll-acrylic, 30, 34, 42), 0.96));
+  backdrop-filter: var(--ll-float-blur, blur(18px) saturate(1.4));
+  -webkit-backdrop-filter: var(--ll-float-blur, blur(18px) saturate(1.4));
+  box-shadow: var(--ll-float-shadow, 0 8px 28px rgba(0, 0, 0, 0.35));
+  color: var(--ll-on-glass, #e2e2e5);
+  font-size: 12px;
+  line-height: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+#liuli-name-tip.is-on {
+  display: flex;
+  opacity: 1;
+  transform: none;
+}
+#liuli-name-tip .user-name {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--ll-brand) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 16px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+#liuli-name-tip .user-name .text-ellipsis {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#liuli-name-tip .q-tag,
+#liuli-name-tip .group-member-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 16px !important;
+  padding: 0 6px !important;
+  border-radius: 6px !important;
+  border: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 16px !important;
+  background: var(--ll-secondary) !important;
+  color: var(--ll-on-secondary, var(--ll-on-brand)) !important;
+}
+#liuli-name-tip .q-tag *,
+#liuli-name-tip .group-member-label * {
+  background: transparent !important;
+  color: inherit !important;
+}
+#liuli-name-tip .q-tag--orange,
+#liuli-name-tip [data-liuli-role="owner"] {
+  background: var(--ll-tertiary) !important;
+  color: var(--ll-on-tertiary, var(--ll-on-brand)) !important;
+}
+#liuli-name-tip [data-liuli-role="admin"] {
+  background: var(--ll-secondary) !important;
+  color: var(--ll-on-secondary, var(--ll-on-brand)) !important;
+}

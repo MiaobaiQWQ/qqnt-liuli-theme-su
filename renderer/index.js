@@ -3378,6 +3378,73 @@ async function initPanel() {
     applySettings(settings, true);
 }
 
+/* ---------- 头像悬浮：显示昵称 / 等级 / 身份标签 ----------
+ * 图片等媒体消息在「媒体隐藏 / 全部隐藏」下没有昵称；鼠标移到头像上时，
+ * 用一条不参与布局的浮层把原 .user-name 的 innerHTML（名字 + 等级 + 标签）显示出来。 */
+let llNameTipEl = null;
+function installNameTips() {
+    if (window.__liuliNameTips) return;
+    window.__liuliNameTips = true;
+    const hide = function () {
+        if (!llNameTipEl) return;
+        llNameTipEl.classList.remove("is-on");
+        llNameTipEl.style.display = "none";
+        llNameTipEl.style.opacity = "0";
+    };
+    const show = function (av) {
+        try {
+            const mc = av && av.closest ? av.closest(".message-container") : null;
+            const src = mc ? mc.querySelector(".user-name") : null;
+            if (!src || getComputedStyle(src).display !== "none") { hide(); return; }
+            if (!llNameTipEl) {
+                llNameTipEl = document.createElement("div");
+                llNameTipEl.id = "liuli-name-tip";
+                llNameTipEl.setAttribute("aria-hidden", "true");
+                document.body.appendChild(llNameTipEl);
+            }
+            const inner = document.createElement("div");
+            inner.className = "user-name";
+            inner.innerHTML = src.innerHTML;
+            if (!(inner.textContent || "").trim()) { hide(); return; }
+            llNameTipEl.replaceChildren(inner);
+            llNameTipEl.style.display = "flex";
+            llNameTipEl.style.opacity = "0";
+            llNameTipEl.style.left = "0px";
+            llNameTipEl.style.top = "0px";
+            const tw = llNameTipEl.offsetWidth;
+            const th = llNameTipEl.offsetHeight;
+            const r = av.getBoundingClientRect();
+            let left = r.right + 10;
+            if (left + tw > window.innerWidth - 8) left = r.left - tw - 10;
+            let top = r.top + (r.height - th) / 2;
+            left = Math.max(8, Math.min(window.innerWidth - tw - 8, left));
+            top = Math.max(8, Math.min(window.innerHeight - th - 8, top));
+            llNameTipEl.style.left = left + "px";
+            llNameTipEl.style.top = top + "px";
+            llNameTipEl.classList.add("is-on");
+            llNameTipEl.style.opacity = "1";
+        } catch (e) { hide(); }
+    };
+    const avatarOf = function (target) {
+        try { return target && target.closest ? target.closest('.message-container > [class*="avatar"]') : null; }
+        catch (e) { return null; }
+    };
+    document.addEventListener("pointerover", function (e) {
+        const av = avatarOf(e.target);
+        if (!av) return;
+        if (e.relatedTarget && av.contains(e.relatedTarget)) return;
+        show(av);
+    }, true);
+    document.addEventListener("pointerout", function (e) {
+        const av = avatarOf(e.target);
+        if (!av) return;
+        if (e.relatedTarget && av.contains(e.relatedTarget)) return;
+        hide();
+    }, true);
+    addEventListener("scroll", hide, true);
+    addEventListener("resize", hide);
+}
+
 (async () => {
     /* 数据目录被整个删掉时（主进程 resetPending 返回 wipe=true）：
      * 先把 localStorage 里的 liuli 设置清干净、配置回默认，再走正常启动流程，
@@ -3399,6 +3466,7 @@ async function initPanel() {
 
     const started = Date.now();
     installRouteScope();
+    installNameTips();
     try {
         const chunks = [];
         for (const file of FILES) {
