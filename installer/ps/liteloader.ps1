@@ -201,7 +201,17 @@ function Install-LiteLoader([string]$qqDir, [string]$profile, [string]$zipPath, 
                     $dllPatched = $true
                     $Log.Invoke('QQNT.dll 已经是补丁状态，跳过。')
                 } else {
-                    throw 'QQNT.dll 里找不到校验函数特征码，当前 QQ 版本可能不支持自动补丁。'
+                    $existingMain = $false
+                    try {
+                        $pkgNow = Get-Content -LiteralPath $packageFile -Raw -Encoding UTF8 | ConvertFrom-Json
+                        $existingMain = ([string]$pkgNow.main -eq './app_launcher/LiteLoader.js')
+                    } catch { }
+                    if ((Test-Path -LiteralPath $launcherFile -PathType Leaf) -and $existingMain) {
+                        $dllPatched = $true
+                        $Log.Invoke('检测到已有的 LiteLoader 启动入口，QQNT.dll 视为已补丁，跳过。')
+                    } else {
+                        throw 'QQNT.dll 里找不到校验函数特征码，当前 QQ 版本可能不支持自动补丁。'
+                    }
                 }
             } else {
                 throw ('QQNT.dll 里找到 ' + $hits.Count + ' 处校验函数特征，无法确定补丁位置，已中止。')
