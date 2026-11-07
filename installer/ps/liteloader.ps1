@@ -148,21 +148,64 @@ function Install-LiteLoader([string]$qqDir, [string]$profile, [string]$zipPath, 
         }
 
         # 3) QQNT.dll 校验函数补丁（mov eax,1; ret）
+        # 9.9.36-53644 的校验函数入口固定在文件偏移 0x510750。
+        # 旧版手工补丁可能留下 41 B8 01 00 00 00 C3，也要识别为已补丁，避免重复改。
         $bytes = [IO.File]::ReadAllBytes($dllFile)
-        $pattern = [byte[]](0x41, 0x57, 0x41, 0x56, 0x41, 0x55)
         $replacement = [byte[]](0xB8, 0x01, 0x00, 0x00, 0x00, 0xC3)
-        $hits = @(Find-BytePattern $bytes $pattern)
-        if ($hits.Count -eq 1) {
-            $at = $hits[0]
-            for ($i = 0; $i -lt $replacement.Length; $i++) { $bytes[$at + $i] = $replacement[$i] }
-            [IO.File]::WriteAllBytes($dllFile, $bytes)
-            $Log.Invoke('已给 QQNT.dll 打校验补丁（偏移 0x{0:X}）。' -f $at)
-        } elseif ($hits.Count -eq 0) {
-            $already = @(Find-BytePattern $bytes $replacement)
-            if ($already.Count -ge 1) { $Log.Invoke('QQNT.dll 已经是补丁状态，跳过。') }
-            else { throw 'QQNT.dll 里找不到校验函数特征码，当前 QQ 版本可能不支持自动补丁。' }
-        } else {
-            throw ('QQNT.dll 里找到 ' + $hits.Count + ' 处特征码，无法确定补丁位置，已中止。')
+        $origEntry = [byte[]](0x41, 0x57, 0x41, 0x56, 0x41, 0x55)
+        $legacyEntry = [byte[]](0x41, 0xB8, 0x01, 0x00, 0x00, 0x00, 0xC3)
+        $dllPatched = $false
+        $knownOffset = 0x510750
+        $versionName = Split-Path -Leaf $versionDir
+        if ($versionName -like '9.9.36*' -and $bytes.Length -ge ($knownOffset + 7)) {
+            $head6 = New-Object byte[] 6
+            [Array]::Copy($bytes, $knownOffset, $head6, 0, 6)
+            $head7 = New-Object byte[] 7
+            [Array]::Copy($bytes, $knownOffset, $head7, 0, 7)
+            if (($head6 -join ',') -eq ($replacement -join ',')) {
+                $dllPatched = $true
+                $Log.Invoke('QQNT.dll 已经是补丁状态（0x510750），跳过。')
+            } elseif (($head7 -join ',') -eq ($legacyEntry -join ',')) {
+                $dllPatched = $true
+                $Log.Invoke('QQNT.dll 已由旧版安装器补丁过（0x510750），跳过。')
+            } elseif (($head6 -join ',') -eq ($origEntry -join ',')) {
+                for ($i = 0; $i -lt $replacement.Length; $i++) { $bytes[$knownOffset + $i] = $replacement[$i] }
+                [IO.File]::WriteAllBytes($dllFile, $bytes)
+                $dllPatched = $true
+                $Log.Invoke('已给 QQNT.dll 打校验补丁（偏移 0x510750）。')
+            }
+        }
+        if (-not $dllPatched) {
+            # 其它 9.9.36 小版本：用校验函数前 15 字节 + 入口指令做唯一特征。
+            $anchor = [byte[]](0xDE,0x04,0xE8,0x58,0xA3,0xE7,0x04,0xE8,0x93,0xAC,0xE7,0x04,0xCC,0xCC,0xCC)
+            $origSig = New-Object byte[] ($anchor.Length + $origEntry.Length)
+            [Array]::Copy($anchor, 0, $origSig, 0, $anchor.Length)
+            [Array]::Copy($origEntry, 0, $origSig, $anchor.Length, $origEntry.Length)
+            $newSig = New-Object byte[] ($anchor.Length + $replacement.Length)
+            [Array]::Copy($anchor, 0, $newSig, 0, $anchor.Length)
+            [Array]::Copy($replacement, 0, $newSig, $anchor.Length, $replacement.Length)
+            $legacySig = New-Object byte[] ($anchor.Length + $legacyEntry.Length)
+            [Array]::Copy($anchor, 0, $legacySig, 0, $anchor.Length)
+            [Array]::Copy($legacyEntry, 0, $legacySig, $anchor.Length, $legacyEntry.Length)
+            $hits = @(Find-BytePattern $bytes $origSig)
+            if ($hits.Count -eq 1) {
+                $at = $hits[0] + $anchor.Length
+                for ($i = 0; $i -lt $replacement.Length; $i++) { $bytes[$at + $i] = $replacement[$i] }
+                [IO.File]::WriteAllBytes($dllFile, $bytes)
+                $dllPatched = $true
+                $Log.Invoke('已给 QQNT.dll 打校验补丁（偏移 0x{0:X}）。' -f $at)
+            } elseif ($hits.Count -eq 0) {
+                $already = @(Find-BytePattern $bytes $newSig)
+                if ($already.Count -eq 0) { $already = @(Find-BytePattern $bytes $legacySig) }
+                if ($already.Count -ge 1) {
+                    $dllPatched = $true
+                    $Log.Invoke('QQNT.dll 已经是补丁状态，跳过。')
+                } else {
+                    throw 'QQNT.dll 里找不到校验函数特征码，当前 QQ 版本可能不支持自动补丁。'
+                }
+            } else {
+                throw ('QQNT.dll 里找到 ' + $hits.Count + ' 处校验函数特征，无法确定补丁位置，已中止。')
+            }
         }
 
         # 4) 启动入口 + package.json main
