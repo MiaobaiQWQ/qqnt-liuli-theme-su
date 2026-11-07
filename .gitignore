@@ -19,3 +19,4 @@ installer/ps/lite-loader.zip
 installer/ps/merged-install.ps1
 installer/dist/
 dist/
+installer/lite-loader.zip
