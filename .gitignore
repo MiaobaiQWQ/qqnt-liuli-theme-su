@@ -9,3 +9,13 @@ assets/wallpaper.jpg
 # 静态检查脚本（tools/verify-renderer-static.cjs）的产物
 renderer-syntax/
 verify-renderer-static-result.json
+
+# 安装器构建产物
+installer/payload.zip
+installer/.payload-src/
+installer/.core-src/
+installer/ps/payload.zip
+installer/ps/lite-loader.zip
+installer/ps/merged-install.ps1
+installer/dist/
+dist/
