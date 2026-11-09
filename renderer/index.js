@@ -21,13 +21,18 @@ installDiagRuntime();
 const ASSET_BASE = "local://profile/plugins/" + SLUG + "/assets/";
 // 每次启动换一个 query：local:// 的 file loader 会把旧 CSS 缓存住，改文件后重启也拿旧的
 const ASSET_TAG = "?v=" + Date.now();
-const FILES = ["wallpaper.css", "qq-tokens.css", "palette.css", "liuli.css", "typography.css", "panel.css", "settings-page.css", "details.css", "no-dividers.css", "input-bar.css", "bubbles.css", "layout.css", "lists.css", "motion.css", "markdown.css", "layout-custom.css"];
+const FILES = ["wallpaper.css", "qq-tokens.css", "palette.css", "liuli.css", "typography.css", "panel.css", "settings-page.css", "details.css", "no-dividers.css", "input-bar.css", "bubbles.css", "layout.css", "lists.css", "motion.css", "markdown.css", "layout-custom.css", "kipfel.css"];
 const STYLE_ID = "liuli-dsh-theme";
 const WALLPAPER = ASSET_BASE + "wallpaper.jpg";
 // 默认壁纸不随插件发布：assets/wallpaper.css（内联壁纸）和 assets/wallpaper.jpg（取色用）
 // 都是可选的本地文件。没有时没有默认壁纸，取色回退 DEFAULT_SOURCE，在设置页选图即可。
 const OPTIONAL_FILES = new Set(["wallpaper.css"]);
-const DEFAULT_SOURCE = "#1d9bf0";
+/* Kipfel 变体：暖粉奶油 + 鼠尾草绿，色板固定从这枚灰玫瑰源色派生，
+ * 不再让用户换壁纸后品牌色跑偏；默认铺 assets/kipfel.jpg。 */
+const KIPFEL = true;
+const KIPFEL_SOURCE = "#b98f8c";
+const KIPFEL_WALLPAPER = ASSET_BASE + "kipfel.jpg";
+const DEFAULT_SOURCE = KIPFEL ? KIPFEL_SOURCE : "#1d9bf0";
 
 /* ---------- 路由作用域 ---------- */
 function installRouteScope() {
@@ -83,6 +88,7 @@ function chromaOf(hex) {
 }
 
 async function extractSource() {
+    if (KIPFEL) return KIPFEL_SOURCE;
     const img = new Image();
     // 用户选过壁纸就从那张取色；之前固定读插件自带的 wallpaper.jpg，
     // 换了壁纸主题色也不变（"没有自动取色"）。
@@ -2000,6 +2006,20 @@ function saveWallpaperState(state, broadcast) {
     return { ok: ok, error: error };
 }
 
+/* Kipfel 首次启动：只种一次默认壁纸；用户以后在设置里删掉不会被反复塞回来。 */
+function llSeedKipfelWallpaper() {
+    if (!KIPFEL) return;
+    try {
+        const SEED_KEY = "kipfel-wallpaper-seeded";
+        if (localStorage.getItem(SEED_KEY) === "1") return;
+        const st = loadWallpaperState();
+        if (!st || !st.src) {
+            saveWallpaperState({ src: KIPFEL_WALLPAPER, area: null, fit: "cover" }, false);
+        }
+        localStorage.setItem(SEED_KEY, "1");
+    } catch (e) { /* 静默：壁纸失败不挡主题注入 */ }
+}
+
 /* 图片宽高比缓存：按 src 存，避免异步竞态拿到旧图的比例 */
 const llImageRatioCache = new Map();
 /* 只留最近几张：key 是整条 dataURL，壁纸换多了会把几十 MB 字符串一直钉在 Map 里。 */
@@ -3332,7 +3352,7 @@ function llBuildTabs(container, groups) {
     const bar = document.createElement("div");
     bar.className = "liuli-seg liuli-tabs";       // 复用 .liuli-seg / .liuli-seg__item 的分段按钮样式
     bar.setAttribute("role", "tablist");
-    bar.setAttribute("aria-label", "琉璃设置分区");
+    bar.setAttribute("aria-label", "Kipfel 设置分区");
     container.appendChild(bar);
     const btns = {};
     const pages = {};
@@ -3381,7 +3401,7 @@ function buildPanelContent(host, settings) {
 
     const head = document.createElement("div");
     head.className = "liuli-panel__head";
-    head.innerHTML = '<div class="liuli-panel__title">琉璃</div>';
+    head.innerHTML = '<div class="liuli-panel__title">Kipfel</div>';
     host.appendChild(head);
 
     const sub = document.createElement("div");
@@ -3640,6 +3660,7 @@ function installNameTips() {
     const started = Date.now();
     installRouteScope();
     installNameTips();
+    llSeedKipfelWallpaper();
     try {
         const chunks = [];
         for (const file of FILES) {

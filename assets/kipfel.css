@@ -1,0 +1,150 @@
+/* ============================================================
+ * Kipfel · 暖粉奶油 × 鼠尾草绿
+ * ------------------------------------------------------------
+ * 参考图：灰玫瑰色午后、奶油纸页、鼠尾草绿毛衣、深棕线稿。
+ * 这里只覆盖“氛围”相关的角色；玻璃/布局/交互仍沿用琉璃本体。
+ * 关键变量用 !important，压过 renderer 按壁纸写进 body 的内联色板，
+ * 保证换壁纸后不会回到蓝色或高饱和玫红。
+ * ============================================================ */
+
+body {
+  --ll-radius: 18px !important;
+  --ll-radius-sm: 14px !important;
+  --ll-radius-xs: 9px !important;
+
+  /* 灰玫瑰主色：比 M3 从源色算出的 #9c4147 更柔，接近图里的旧玫瑰 */
+  --ll-brand: #a45f62 !important;
+  --ll-brand-rgb: 164, 95, 98 !important;
+  --ll-brand-hover: #b36d70 !important;
+  --ll-brand-pressed: #8d4f52 !important;
+  --ll-brand-tint: #f6dcd8 !important;
+  --ll-brand-weak: #fae9e5 !important;
+  --ll-brand-line: #b86b6e !important;
+  --ll-on-brand: #fffaf7 !important;
+  --ll-on-brand-rgb: 255, 250, 247 !important;
+
+  /* 鼠尾草绿：名字、次级标签、自己的气泡 */
+  --ll-secondary: #76825f !important;
+  --ll-on-secondary: #ffffff !important;
+  --ll-secondary-container: #dfe7d2 !important;
+  --ll-on-secondary-container: #29321d !important;
+  --ll-name: #76825f !important;
+  --ll-bubble-self: rgba(143, 158, 117, 0.92) !important;
+  --ll-bubble-self-fg: #26301c !important;
+  --ll-bubble-self-link: #4d5c38 !important;
+
+  /* 纸袋金第三色 */
+  --ll-tertiary: #9a7647 !important;
+  --ll-on-tertiary: #ffffff !important;
+  --ll-tertiary-container: #f2e0c3 !important;
+  --ll-on-tertiary-container: #34240d !important;
+
+  --ll-primary-container: #f3d7d3 !important;
+  --ll-on-primary-container: #402022 !important;
+
+  /* 墨色：不用纯黑，保留参考图的暖棕线稿感 */
+  --ll-on-glass: #382b2c !important;
+  --ll-on-glass-rgb: 56, 43, 44 !important;
+  --ll-on-glass-2: #5d4b4b !important;
+  --ll-on-glass-2-rgb: 93, 75, 75 !important;
+  --ll-on-glass-3: #786260 !important;
+  --ll-on-glass-4: #b9a6a1 !important;
+
+  --ll-app-bg: #fbf4ef !important;
+  --ll-surface-low: #f6ebe4 !important;
+  --ll-surface-mid: #efe2da !important;
+  --ll-surface-high: #e7d7ce !important;
+  --ll-surface-highest: #dfcdc3 !important;
+  --ll-surface-1: #f1e2dc !important;
+  --ll-surface-2: #ead8d1 !important;
+  --ll-surface-3: #e1cdc5 !important;
+  --ll-surface-4: #d7c0b7 !important;
+
+  --ll-stroke-1: #8b7571 !important;
+  --ll-stroke-2: #d5c0ba !important;
+  --ll-stroke-3: #c9b2ac !important;
+  --ll-popup-bg: #e7d7ce !important;
+
+  /* 奶油玻璃：亮色模式下是偏纸的白，不是冷灰 */
+  --ll-acrylic: 238, 226, 217 !important;
+  --ll-acrylic-low: 247, 238, 231 !important;
+  --ll-acrylic-high: 224, 208, 198 !important;
+
+  --ll-veil-white-rgb: 250, 244, 238 !important;
+  --ll-halo-rgb: 250, 244, 238 !important;
+  --ll-shadow-rgb: 58, 37, 37 !important;
+}
+
+body[data-liuli-dark="1"] {
+  --ll-brand: #e7b3b1 !important;
+  --ll-brand-rgb: 231, 179, 177 !important;
+  --ll-brand-hover: #f0c3c0 !important;
+  --ll-brand-pressed: #d9a3a1 !important;
+  --ll-brand-tint: #5a3436 !important;
+  --ll-brand-weak: #6d4143 !important;
+  --ll-brand-line: #c88e8d !important;
+  --ll-on-brand: #3d1d1f !important;
+  --ll-on-brand-rgb: 61, 29, 31 !important;
+
+  --ll-secondary: #b9c6a2 !important;
+  --ll-on-secondary: #27311d !important;
+  --ll-secondary-container: #3b472f !important;
+  --ll-on-secondary-container: #e3ecd5 !important;
+  --ll-name: #b9c6a2 !important;
+  --ll-bubble-self: rgba(94, 110, 76, 0.72) !important;
+  --ll-bubble-self-fg: #edf4e2 !important;
+  --ll-bubble-self-link: #cddbb6 !important;
+
+  --ll-tertiary: #dfc08f !important;
+  --ll-on-tertiary: #3a2a14 !important;
+  --ll-tertiary-container: #4d3a22 !important;
+  --ll-on-tertiary-container: #f6e3c7 !important;
+
+  --ll-primary-container: #5b3436 !important;
+  --ll-on-primary-container: #f8d9d6 !important;
+
+  --ll-on-glass: #f3e6df !important;
+  --ll-on-glass-rgb: 243, 230, 223 !important;
+  --ll-on-glass-2: #d3c2ba !important;
+  --ll-on-glass-2-rgb: 211, 194, 186 !important;
+  --ll-on-glass-3: #b09c95 !important;
+  --ll-on-glass-4: #5a4443 !important;
+
+  --ll-app-bg: #1b1516 !important;
+  --ll-surface-low: #241d1e !important;
+  --ll-surface-mid: #2a2223 !important;
+  --ll-surface-high: #342a2b !important;
+  --ll-surface-highest: #3e3334 !important;
+  --ll-surface-1: #2d2224 !important;
+  --ll-surface-2: #34282a !important;
+  --ll-surface-3: #3d3032 !important;
+  --ll-surface-4: #47383a !important;
+
+  --ll-stroke-1: #a58f89 !important;
+  --ll-stroke-2: #5a4645 !important;
+  --ll-stroke-3: #6b5452 !important;
+  --ll-popup-bg: #342a2b !important;
+
+  --ll-acrylic: 43, 33, 34 !important;
+  --ll-acrylic-low: 36, 28, 29 !important;
+  --ll-acrylic-high: 58, 46, 47 !important;
+
+  --ll-veil-white-rgb: 250, 244, 238 !important;
+  --ll-halo-rgb: 250, 244, 238 !important;
+  --ll-shadow-rgb: 0, 0, 0 !important;
+}
+
+/* 参考图的线条是深棕，不是纯黑；卡片描边和阴影也跟着暖一点 */
+body .recent-contact,
+body .container-sidebar,
+body .right-sidebar,
+body .group-box {
+  border-color: rgba(164, 95, 98, 0.12) !important;
+}
+
+body[data-liuli-dark="1"] .recent-contact,
+body[data-liuli-dark="1"] .container-sidebar,
+body[data-liuli-dark="1"] .right-sidebar,
+body[data-liuli-dark="1"] .group-box {
+  border-color: rgba(231, 179, 177, 0.12) !important;
+}

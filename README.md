@@ -1,8 +1,15 @@
 <div align="center">
 
-# 🌊 琉璃 Liuli
+# 🐾 Kipfel
 
-**把 DSH 客户端的「琉璃」视觉语言搬到 QQNT 上的主题插件**
+**暖粉奶油 × 鼠尾草绿的 QQNT 琉璃变体**
+
+> 参考图是一张灰玫瑰色的午后猫娘插画：旧玫瑰、奶油纸页、鼠尾草绿毛衣、深棕线稿。
+> Kipfel 把这套配色搬进 QQNT：固定灰玫瑰主色、鼠尾草绿姓名与自己的气泡、奶油玻璃、
+> 暖棕文字；默认铺 `assets/kipfel.jpg`，换壁纸也不会跑回蓝色。
+
+这是 [琉璃主题](https://github.com/LilycleHeart/qqnt-liuli-theme) 的 `kipfel-qqnt` 风格分支，
+功能和安装方式与琉璃一致，配色与默认壁纸不同。
 
 [![LiteLoaderQQNT](https://img.shields.io/badge/LiteLoaderQQNT-1.4.1-7c6ce6?style=flat-square)](https://github.com/LiteLoaderQQNT/LiteLoaderQQNT)
 [![QQ](https://img.shields.io/badge/QQ-9.9.36%20%28Win%29-1d9bf0?style=flat-square)](https://im.qq.com/)
