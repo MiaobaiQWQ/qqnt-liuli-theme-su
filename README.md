@@ -11,6 +11,9 @@
 这是 [琉璃主题](https://github.com/LilycleHeart/qqnt-liuli-theme) 的 `kipfel-qqnt` 风格分支，
 功能和安装方式与琉璃一致，配色与默认壁纸不同。
 
+> 字体使用 **悠哉字体 Yozai**（OFL-1.1，https://github.com/lxgw/yozai-font）。
+> 字体文件不随插件分发；本机安装后 `kipfel.css` 会自动优先使用，未安装时回退 MiSans / 微软雅黑。
+
 [![LiteLoaderQQNT](https://img.shields.io/badge/LiteLoaderQQNT-1.4.1-7c6ce6?style=flat-square)](https://github.com/LiteLoaderQQNT/LiteLoaderQQNT)
 [![QQ](https://img.shields.io/badge/QQ-9.9.36%20%28Win%29-1d9bf0?style=flat-square)](https://im.qq.com/)
 [![platform](https://img.shields.io/badge/platform-win%20%7C%20linux%20%7C%20mac-888?style=flat-square)](#)

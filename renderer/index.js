@@ -1,4 +1,4 @@
-// 琉璃主题插件 · 渲染进程侧
+﻿// 琉璃主题插件 · 渲染进程侧
 // 1) 同步路由作用域（592 条规则依赖 data-hash）
 // 2) 注入 CSS：壁纸 → QQ token 打透 → 静态色板兜底 → 外观
 // 3) 从壁纸取源色，用 MCU 实时派生 M3 色板（跟随壁纸）
@@ -1208,7 +1208,7 @@ function llReducedMotion() {
             matchMedia("(prefers-reduced-motion: reduce)").matches;
     } catch (e) { return false; }
 }
-var LL_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+var LL_EASE = "cubic-bezier(0.22, 0.61, 0.36, 1)";
 
 function llNorm(s) { return (s || "").replace(/\s+/g, " ").trim(); }
 
@@ -1231,8 +1231,8 @@ function llRiseIn(els, step) {
     if (llReducedMotion() || !els.length || typeof els[0].animate !== "function") return;
     els.slice(0, 18).forEach(function (el, i) {
         try {
-            el.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }],
-                { duration: 460, delay: i * (step || 26), easing: LL_EASE, fill: "backwards" });
+            el.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }],
+                { duration: 380, delay: i * (step || 18), easing: LL_EASE, fill: "backwards" });
         } catch (e) {}
     });
 }
@@ -1272,8 +1272,8 @@ function llWatchContactList() {
             if (lr && lr.height > 0) {
                 var dy = Math.round(lr.top - nr.top);
                 gained.animate([{ transform: "translateY(" + dy + "px)" }, { transform: "translateY(0)" }], {
-                    duration: Math.min(460, 240 + Math.abs(dy) * 0.22),
-                    easing: "cubic-bezier(0.3, 1.25, 0.45, 1)",
+                    duration: Math.min(420, 260 + Math.abs(dy) * 0.18),
+                    easing: "cubic-bezier(0.24, 0.8, 0.32, 1)",
                     pseudoElement: "::before"
                 });
             } else {
@@ -1514,8 +1514,8 @@ function llMotionPass(added) {
             // 换会话：消息区整体轻轻浮上来
             if (first && !llReducedMotion()) {
                 var area = document.querySelector(".chat-msg-area");
-                if (area && area.animate) area.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }],
-                    { duration: 280, easing: LL_EASE });
+                if (area && area.animate) area.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }],
+                    { duration: 320, easing: LL_EASE });
             }
             return;
         }
@@ -1536,8 +1536,8 @@ function llMotionPass(added) {
             ], { duration: 360, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
             var av = mc.querySelector(":scope > .avatar-span");
             if (av && av.animate && getComputedStyle(av).display !== "none") {
-                av.animate([{ opacity: 0, transform: "scale(0.6)" }, { opacity: 1, transform: "none" }],
-                    { duration: 300, delay: 60, easing: "cubic-bezier(0.3, 1.35, 0.45, 1)", fill: "backwards" });
+                av.animate([{ opacity: 0, transform: "scale(0.9)" }, { opacity: 1, transform: "none" }],
+                    { duration: 340, delay: 40, easing: LL_EASE, fill: "backwards" });
             }
         });
     } catch (e) { /* 静默 */ }
@@ -4053,3 +4053,4 @@ function buildFontControls(host) {
         input.title = names.length ? "本机可用 " + names.length + " 种，点输入框可选" : "直接输入字体名";
     });
 }
+
