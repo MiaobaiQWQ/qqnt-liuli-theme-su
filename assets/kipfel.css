@@ -159,13 +159,13 @@ body textarea,
 body [contenteditable="true"],
 body .message,
 body .text-element {
-  font-family: "Yozai", "悠哉字体", "MiSans", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif, "Segoe UI Emoji" !important;
+  font-family: var(--ll-font, "MiSans", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif, "Segoe UI Emoji") !important;
 }
 body code,
 body pre,
 body .markdown-code,
 body [class*="code-block"] {
-  font-family: "Cascadia Code", Consolas, "Yozai", "悠哉字体", monospace !important;
+  font-family: "Cascadia Code", Consolas, "MiSans", monospace !important;
 }
 
 /* ── 慵懒猫娘的动效 ──
@@ -282,6 +282,7 @@ body .liuli-embedded > :nth-child(4) { animation-delay: 30ms; }
 body .liuli-embedded > :nth-child(5) { animation-delay: 40ms; }
 body .liuli-embedded > :nth-child(6) { animation-delay: 50ms; }
 body .liuli-embedded > :nth-child(n+7) { animation-delay: 60ms; }
+
 
 
 

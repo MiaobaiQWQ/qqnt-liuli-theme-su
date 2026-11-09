@@ -1,4 +1,4 @@
-﻿// 琉璃主题插件 · 渲染进程侧
+// 琉璃主题插件 · 渲染进程侧
 // 1) 同步路由作用域（592 条规则依赖 data-hash）
 // 2) 注入 CSS：壁纸 → QQ token 打透 → 静态色板兜底 → 外观
 // 3) 从壁纸取源色，用 MCU 实时派生 M3 色板（跟随壁纸）
@@ -2020,6 +2020,14 @@ function llSeedKipfelWallpaper() {
     } catch (e) { /* 静默：壁纸失败不挡主题注入 */ }
 }
 
+/* Kipfel 首次启动默认用悠哉字体；用户之后可以在设置里换成任意字体。 */
+function llSeedKipfelFont() {
+    if (!KIPFEL) return;
+    try {
+        if (!localStorage.getItem("liuli-font")) localStorage.setItem("liuli-font", "悠哉字体");
+    } catch (e) { /* 静默 */ }
+}
+
 /* 图片宽高比缓存：按 src 存，避免异步竞态拿到旧图的比例 */
 const llImageRatioCache = new Map();
 /* 只留最近几张：key 是整条 dataURL，壁纸换多了会把几十 MB 字符串一直钉在 Map 里。 */
@@ -3661,6 +3669,7 @@ function installNameTips() {
     installRouteScope();
     installNameTips();
     llSeedKipfelWallpaper();
+    llSeedKipfelFont();
     try {
         const chunks = [];
         for (const file of FILES) {
@@ -3993,14 +4002,17 @@ function llFontInstalled(name) {
 }
 
 async function llListFonts() {
+    /* 悠哉字体是用户字体，Chromium 的 queryLocalFonts 不一定枚举得到；
+     * 固定放两个名字，保证设置里能选。选中后 --ll-font 会带回退栈。 */
+    const preferred = ["Yozai", "悠哉字体"];
     try {
         if (window.queryLocalFonts) {
             const fonts = await window.queryLocalFonts();
             const names = Array.from(new Set(fonts.map(f => f.family))).sort((a, b) => a.localeCompare(b, "zh"));
-            if (names.length) return names;
+            if (names.length) return Array.from(new Set(preferred.concat(names)));
         }
     } catch (e) { /* 没权限，退回名单 */ }
-    return LL_FONT_CANDIDATES.filter(llFontInstalled);
+    return Array.from(new Set(preferred.concat(LL_FONT_CANDIDATES.filter(llFontInstalled))));
 }
 
 function buildFontControls(host) {
