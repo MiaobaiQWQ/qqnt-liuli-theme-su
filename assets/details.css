@@ -26,20 +26,27 @@
   letter-spacing: 0.3px !important;
 }
 
-/* 胶囊只加在文字本身。
- * 之前用 "> div:not(:only-child)" 会命中两侧的小圆点，
- * 截图里表现为胶囊左右各多一个小圆。 */
-.new-msg-indicator > span {
+/* 只给有文字的那一段加胶囊；两侧的空节点是 QQ 的装饰/线段，
+ * 不能套 pill，否则会变成左右两个小圆球（截图反馈）。 */
+.new-msg-indicator > span:not(:empty) {
   padding: 2px 10px !important;
   border-radius: 999px !important;
   background: rgba(var(--ll-brand-rgb), 0.14) !important;
   white-space: nowrap !important;
 }
 
+/* 两侧装饰节点：去掉 typography 里通用 > * 规则留下的边框和胶囊感。 */
 .new-msg-indicator > div {
   background: transparent !important;
   padding: 0 !important;
+  border: none !important;
   border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* 空节点直接不显示，避免任何宽度/边框残留成小圆点。 */
+.new-msg-indicator > :empty {
+  display: none !important;
 }
 
 /* ════════════════════════════════════════════════════════════

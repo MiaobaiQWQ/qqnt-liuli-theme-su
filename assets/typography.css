@@ -93,10 +93,12 @@
     transparent 100%) !important;
 }
 
-/* 中间胶囊：把文字本身做成 pill（若结构里文字是独立元素） */
-.aio [class*="new-msg"] > *,
-.aio [class*="msg-divider"] > *,
-.aio [class*="unread-divider"] > * {
+/* 中间胶囊：只给真正承载文字的节点，不要命中两侧的空装饰节点。
+ * QQ 的 .new-msg-indicator 里两侧是空 span/div，之前用 > * 会把它们
+ * 也套上 padding + border + 999px 圆角，画成左右两个小圆球。 */
+.aio [class*="new-msg"] > *:not(:empty),
+.aio [class*="msg-divider"] > *:not(:empty),
+.aio [class*="unread-divider"] > *:not(:empty) {
   flex: 0 0 auto !important;
   padding: 3px 12px !important;
   border-radius: 999px !important;
