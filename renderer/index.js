@@ -1231,8 +1231,8 @@ function llRiseIn(els, step) {
     if (llReducedMotion() || !els.length || typeof els[0].animate !== "function") return;
     els.slice(0, 18).forEach(function (el, i) {
         try {
-            el.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }],
-                { duration: 380, delay: i * (step || 18), easing: LL_EASE, fill: "backwards" });
+            el.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }],
+                { duration: 320, delay: i * (step || 14), easing: LL_EASE, fill: "backwards" });
         } catch (e) {}
     });
 }
@@ -1514,8 +1514,8 @@ function llMotionPass(added) {
             // 换会话：消息区整体轻轻浮上来
             if (first && !llReducedMotion()) {
                 var area = document.querySelector(".chat-msg-area");
-                if (area && area.animate) area.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }],
-                    { duration: 320, easing: LL_EASE });
+                if (area && area.animate) area.animate([{ opacity: 0, transform: "translateY(3px)" }, { opacity: 1, transform: "none" }],
+                    { duration: 280, easing: LL_EASE });
             }
             return;
         }
@@ -1536,8 +1536,8 @@ function llMotionPass(added) {
             ], { duration: 360, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
             var av = mc.querySelector(":scope > .avatar-span");
             if (av && av.animate && getComputedStyle(av).display !== "none") {
-                av.animate([{ opacity: 0, transform: "scale(0.9)" }, { opacity: 1, transform: "none" }],
-                    { duration: 340, delay: 40, easing: LL_EASE, fill: "backwards" });
+                av.animate([{ opacity: 0 }, { opacity: 1 }],
+                    { duration: 300, delay: 30, easing: LL_EASE, fill: "backwards" });
             }
         });
     } catch (e) { /* 静默 */ }
@@ -3948,7 +3948,7 @@ function llAtPass() {
 const LL_FONT_KEY = "liuli-font";
 const LL_FONT_CANDIDATES = [
     "MiSans", "HarmonyOS Sans SC", "OPPOSans", "vivo Sans", "Alibaba PuHuiTi 3.0", "阿里巴巴普惠体 3.0",
-    "LXGW WenKai", "霞鹜文楷", "LXGW WenKai Screen", "霞鹜文楷 屏幕阅读版",
+    "LXGW WenKai", "霞鹜文楷", "LXGW WenKai Screen", "霞鹜文楷 屏幕阅读版", "Yozai", "悠哉字体",
     "Source Han Sans SC", "思源黑体", "Noto Sans SC", "Noto Sans CJK SC", "Sarasa UI SC", "更纱黑体 UI SC",
     "Microsoft YaHei UI", "Microsoft YaHei", "微软雅黑", "DengXian", "等线", "PingFang SC",
     "Inter", "Segoe UI", "SimHei", "黑体", "KaiTi", "楷体", "SimSun", "宋体", "FangSong", "仿宋",
@@ -4053,4 +4053,6 @@ function buildFontControls(host) {
         input.title = names.length ? "本机可用 " + names.length + " 种，点输入框可选" : "直接输入字体名";
     });
 }
+
+
 

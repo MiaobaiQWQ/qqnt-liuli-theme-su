@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
  * Kipfel · 暖粉奶油 × 鼠尾草绿
  * ------------------------------------------------------------
  * 参考图：灰玫瑰色午后、奶油纸页、鼠尾草绿毛衣、深棕线稿。
@@ -178,19 +178,19 @@ body {
   --ll-ease: cubic-bezier(0.22, 0.61, 0.36, 1) !important;
   --ll-ease-spring: cubic-bezier(0.24, 0.8, 0.32, 1) !important;
   --ll-dur-fast: 180ms !important;
-  --ll-dur: 300ms !important;
+  --ll-dur: 260ms !important;
 }
 
 @keyframes liuli-pop-in {
-  from { opacity: 0; transform: translateY(4px) scale(0.985); }
+  from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes liuli-tool-in {
-  from { opacity: 0; transform: translateY(4px) scale(0.94); }
+  from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes liuli-tab-bounce {
-  0% { transform: scale(0.96); }
+  0% { opacity: 0.55; transform: scale(0.98); }
   100% { transform: scale(1); }
 }
 
@@ -208,28 +208,28 @@ body .q-dialog-main,
 body .form-modal,
 body .expression-panel .sticker-panel,
 body .chat-input-area > .chat-func-bar.liuli-expanded {
-  animation-duration: 300ms !important;
+  animation-duration: 260ms !important;
 }
 
 body .chat-func-bar.liuli-expanded .icon-item {
-  animation-duration: 300ms !important;
+  animation-duration: 260ms !important;
 }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(1) .icon-item,
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(1) { animation-delay: 0ms; }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(2) .icon-item,
-body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(2) { animation-delay: 18ms; }
+body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(2) { animation-delay: 10ms; }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(3) .icon-item,
-body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(3) { animation-delay: 36ms; }
+body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(3) { animation-delay: 20ms; }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(4) .icon-item,
-body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(4) { animation-delay: 54ms; }
+body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(4) { animation-delay: 30ms; }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(5) .icon-item,
-body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(5) { animation-delay: 72ms; }
+body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(5) { animation-delay: 40ms; }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(6) .icon-item,
-body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(6) { animation-delay: 90ms; }
+body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(6) { animation-delay: 50ms; }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(7) .icon-item,
-body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(7) { animation-delay: 108ms; }
+body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(7) { animation-delay: 60ms; }
 body .chat-func-bar.liuli-expanded .chat-func-bar__left > :nth-child(n+8) .icon-item,
-body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(n+8) { animation-delay: 126ms; }
+body .chat-func-bar.liuli-expanded .chat-func-bar__left > .icon-item:nth-child(n+8) { animation-delay: 70ms; }
 
 body .icon-item,
 body #liuli-emoji-btn,
@@ -271,14 +271,17 @@ body .nav-item {
   transition: background-color 220ms ease, color 220ms ease !important;
 }
 body .tab-item-mask.is-active {
-  animation-duration: 300ms !important;
+  animation-duration: 260ms !important;
 }
 body .liuli-embedded > * {
-  animation-duration: 420ms !important;
+  animation-duration: 360ms !important;
 }
-body .liuli-embedded > :nth-child(2) { animation-delay: 18ms; }
-body .liuli-embedded > :nth-child(3) { animation-delay: 36ms; }
-body .liuli-embedded > :nth-child(4) { animation-delay: 54ms; }
-body .liuli-embedded > :nth-child(5) { animation-delay: 72ms; }
-body .liuli-embedded > :nth-child(6) { animation-delay: 90ms; }
-body .liuli-embedded > :nth-child(n+7) { animation-delay: 108ms; }
+body .liuli-embedded > :nth-child(2) { animation-delay: 10ms; }
+body .liuli-embedded > :nth-child(3) { animation-delay: 20ms; }
+body .liuli-embedded > :nth-child(4) { animation-delay: 30ms; }
+body .liuli-embedded > :nth-child(5) { animation-delay: 40ms; }
+body .liuli-embedded > :nth-child(6) { animation-delay: 50ms; }
+body .liuli-embedded > :nth-child(n+7) { animation-delay: 60ms; }
+
+
+
