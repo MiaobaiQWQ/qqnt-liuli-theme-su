@@ -24,6 +24,14 @@
   font-size: 12px !important;
   font-weight: 500 !important;
   letter-spacing: 0.3px !important;
+  justify-content: center !important;
+}
+
+/* 两侧的 __line 就是截图里的圆环/装饰节点。用户要求不要圆环，
+ * 直接移除；只保留中间的文字胶囊，并让它在整行居中。 */
+.new-msg-indicator .new-msg-indicator__line,
+.new-msg-indicator > .new-msg-indicator__line {
+  display: none !important;
 }
 
 /* 只给有文字的那一段加胶囊；两侧的空节点是 QQ 的装饰/线段，
