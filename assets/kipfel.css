@@ -283,6 +283,43 @@ body .liuli-embedded > :nth-child(5) { animation-delay: 40ms; }
 body .liuli-embedded > :nth-child(6) { animation-delay: 50ms; }
 body .liuli-embedded > :nth-child(n+7) { animation-delay: 60ms; }
 
-
-
+/* ── QQ 邮箱提醒 / 公众号消息 ──
+ * 这类消息行带 .is-pub-account，邮件卡片是特殊 Ark 布局；
+ * 琉璃的 6 列气泡网格会把内容列压成 0，只剩头像黑块和时间。
+ * 这一行退回最简单的「头像 + 内容」flex，不再套聊天网格。 */
+body .message-container.is-pub-account {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  grid-template-columns: none !important;
+  grid-template-areas: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+body .message-container.is-pub-account > .avatar-span,
+body .message-container.is-pub-account > [class*="avatar"] {
+  flex: 0 0 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  align-self: flex-start !important;
+  justify-self: auto !important;
+}
+body .message-container.is-pub-account > .message-content__wrapper {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 0 0 8px !important;
+  justify-self: auto !important;
+  align-self: auto !important;
+}
+body .message-container.is-pub-account > .msg-content-container,
+body .message-container.is-pub-account .msg-content-container {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
 
