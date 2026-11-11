@@ -319,7 +319,29 @@ body .message-container.is-pub-account .msg-content-container {
   flex: 1 1 auto !important;
   width: 100% !important;
   max-width: none !important;
-  min-height: 0 !important;
+  min-height: 72px !important;
+  height: auto !important;
   margin: 0 !important;
+  overflow: visible !important;
 }
+/* 邮件/公众号卡片真正的内容层：QQ 用 public-account-local-wrapper + view-port-container。
+ * 主题的 overflow/min-height 会把它压成 0，只剩卡片底的一条黑带。 */
+body .message-container.is-pub-account .public-account-local-wrapper,
+body .message-container.is-pub-account .view-port-container,
+body .message-container.is-pub-account .source-msg {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 72px !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+body .message-container.is-pub-account .ark-msg-content-container {
+  min-height: 72px !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
 
