@@ -385,3 +385,94 @@ body .message-container.is-pub-account .view-port-container > * {
   max-height: none !important;
   overflow: visible !important;
 }
+/* ── 邮箱提醒卡片：收窄成 Kipfel 的小暖卡，不再是一条横贯全屏的黑条 ── */
+body .message-container.is-pub-account > .message-content__wrapper {
+  flex: 0 1 560px !important;
+  max-width: 560px !important;
+}
+body .message-container.is-pub-account .msg-content-container {
+  max-width: 560px !important;
+}
+body .message-container.is-pub-account .email-notification,
+body .message-container.is-pub-account .text-notification,
+body .message-container.is-pub-account .ad-text-notification {
+  width: 100% !important;
+  max-width: 560px !important;
+  box-sizing: border-box !important;
+  padding: 14px 16px !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(180deg, rgba(var(--ll-brand-rgb), 0.08), transparent 45%),
+    rgba(var(--ll-acrylic), 0.92) !important;
+  border: 1px solid rgba(var(--ll-brand-rgb), 0.18) !important;
+  box-shadow: 0 8px 24px rgba(var(--ll-shadow-rgb), 0.2) !important;
+  overflow: visible !important;
+}
+body .message-container.is-pub-account .notification__content {
+  display: block !important;
+  padding: 0 !important;
+}
+body .message-container.is-pub-account .notification__content-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  margin-bottom: 10px !important;
+}
+body .message-container.is-pub-account .notification__sender {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+body .message-container.is-pub-account .notification__sender-name {
+  font-size: 13px !important;
+  line-height: 18px !important;
+  font-weight: 600 !important;
+  color: var(--ll-on-glass) !important;
+}
+body .message-container.is-pub-account .notification__sender-email {
+  font-size: 11px !important;
+  line-height: 16px !important;
+  color: var(--ll-on-glass-3) !important;
+}
+body .message-container.is-pub-account .notification__email-title,
+body .message-container.is-pub-account .notification__title {
+  display: block !important;
+  margin: 0 0 6px !important;
+  font-size: 15px !important;
+  line-height: 22px !important;
+  font-weight: 600 !important;
+  color: var(--ll-on-glass) !important;
+  letter-spacing: 0.1px !important;
+}
+body .message-container.is-pub-account .notification__email-brief,
+body .message-container.is-pub-account .notification__text,
+body .message-container.is-pub-account .notification__email-brief-body {
+  display: block !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: var(--ll-on-glass-2) !important;
+  white-space: normal !important;
+  overflow: visible !important;
+}
+body .message-container.is-pub-account .notification__footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-top: 12px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid rgba(var(--ll-brand-rgb), 0.14) !important;
+  font-size: 12px !important;
+  line-height: 18px !important;
+  color: var(--ll-brand) !important;
+}
+body .message-container.is-pub-account .notification__footer .q-button {
+  min-height: 26px !important;
+  padding: 0 10px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  background: rgba(var(--ll-brand-rgb), 0.12) !important;
+  color: var(--ll-brand) !important;
+  font-size: 12px !important;
+}
