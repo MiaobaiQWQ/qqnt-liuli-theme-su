@@ -360,3 +360,28 @@ body .message-container.is-pub-account .public-account-local-wrapper a,
 body .message-container.is-pub-account [class*="link"] {
   color: var(--ll-brand) !important;
 }
+/* 邮件卡片内部还可能是绝对定位的 Ark 内容层：只给主题的容器撑高不够，
+ * 把内容层和它的直接子节点拉回普通文档流，避免只剩一行时间/发送者。 */
+body .message-container.is-pub-account .ark-msg-content-container,
+body .message-container.is-pub-account .ark-msg-content-container_with_public_account_local,
+body .message-container.is-pub-account .ark-view-message,
+body .message-container.is-pub-account .source-msg,
+body .message-container.is-pub-account .view-port-container {
+  display: block !important;
+  position: relative !important;
+  transform: none !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 72px !important;
+  overflow: visible !important;
+}
+body .message-container.is-pub-account .ark-msg-content-container > *,
+body .message-container.is-pub-account .ark-msg-content-container_with_public_account_local > *,
+body .message-container.is-pub-account .ark-view-message > *,
+body .message-container.is-pub-account .source-msg > *,
+body .message-container.is-pub-account .view-port-container > * {
+  position: static !important;
+  transform: none !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
