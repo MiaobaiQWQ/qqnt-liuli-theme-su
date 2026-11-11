@@ -343,5 +343,20 @@ body .message-container.is-pub-account .ark-msg-content-container {
   height: auto !important;
   overflow: visible !important;
 }
-
-
+/* 邮件卡片的内容可能仍是 QQ 原生的深色字：主题把卡片底压深后，
+ * 黑字就变成「空卡片」。这里只对 is-pub-account 的文本做一次反色，
+ * 图片/图标不动。 */
+body .message-container.is-pub-account .msg-content-container,
+body .message-container.is-pub-account .msg-content-container *,
+body .message-container.is-pub-account .public-account-local-wrapper,
+body .message-container.is-pub-account .public-account-local-wrapper * {
+  color: var(--ll-on-glass) !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+body .message-container.is-pub-account .msg-content-container a,
+body .message-container.is-pub-account .public-account-local-wrapper a,
+body .message-container.is-pub-account [class*="link"] {
+  color: var(--ll-brand) !important;
+}
