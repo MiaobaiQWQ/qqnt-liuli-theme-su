@@ -1691,3 +1691,33 @@ body[data-liuli-no-texture] .chat-msg-area canvas {
 body[data-liuli-no-texture] .chat-msg-area {
   background-image: none !important;
 }
+
+/* ── 语音/视频通话窗口兜底 ──
+ * motion.css 的「独立窗口内容入场」会命中 #app > .av-container；
+ * 实测 .av-container 的 opacity 会停在 0，只剩黑底和按钮。
+ * 这里统一恢复可见性，并兼容新的 group-video 通话窗口。 */
+body[data-hash^="#/av"] #app,
+body[data-hash*="group-video"] #app,
+body:has([class*="group-video"]) #app,
+body[data-hash^="#/av"] .av-container,
+body[data-hash^="#/av"] .av-container *,
+body[data-hash^="#/av"] .panel-content,
+body[data-hash^="#/av"] .app-border,
+body:has([class*="group-video"]) [class*="group-video"],
+body:has([class*="group-video"]) .group-video-avatar,
+body:has([class*="group-video"]) .group-video-avatar * {
+  background-color: transparent !important;
+  isolation: auto !important;
+  animation: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+body[data-hash^="#/av"] #app::before,
+body[data-hash^="#/av"] #app::after,
+body[data-hash*="group-video"] #app::before,
+body[data-hash*="group-video"] #app::after,
+body:has([class*="group-video"]) #app::before,
+body:has([class*="group-video"]) #app::after {
+  content: none !important;
+  display: none !important;
+}
