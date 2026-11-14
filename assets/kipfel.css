@@ -476,3 +476,36 @@ body .message-container.is-pub-account .notification__footer .q-button {
   color: var(--ll-brand) !important;
   font-size: 12px !important;
 }
+/* ── 通话窗口（#/av、群视频、非聊天独立窗口）──
+ * 原来分散成七段，且互相重复；现在合并成一条统一规则：
+ * 撤掉主题 #app 黑底/壁纸层/isolation，并解除 motion.css 的入场透明度。
+ * 主聊天窗口有 .recent-contact，不会被最后一条命中。 */
+body[data-hash^="#/av"] #app,
+body[data-hash*="group-video"] #app,
+body:has([class*="group-video"]) #app,
+html body:not(:has(.recent-contact)):not(#ll) #app,
+body[data-hash^="#/av"] .av-container,
+body[data-hash^="#/av"] .av-container *,
+body[data-hash^="#/av"] .panel-content,
+body[data-hash^="#/av"] .app-border,
+body:has([class*="group-video"]) [class*="group-video"],
+body:has([class*="group-video"]) .group-video-avatar,
+body:has([class*="group-video"]) .group-video-avatar * {
+  background-color: transparent !important;
+  isolation: auto !important;
+  animation: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+/* 壁纸/材质伪元素不能和上面的元素共用 display:none，单独一条。 */
+body[data-hash^="#/av"] #app::before,
+body[data-hash^="#/av"] #app::after,
+body[data-hash*="group-video"] #app::before,
+body[data-hash*="group-video"] #app::after,
+body:has([class*="group-video"]) #app::before,
+body:has([class*="group-video"]) #app::after,
+html body:not(:has(.recent-contact)):not(#ll) #app::before,
+html body:not(:has(.recent-contact)):not(#ll) #app::after {
+  content: none !important;
+  display: none !important;
+}
