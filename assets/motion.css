@@ -204,9 +204,21 @@ body .liuli-embedded > :nth-child(5) { animation-delay: 80ms; }
 body .liuli-embedded > :nth-child(6) { animation-delay: 100ms; }
 body .liuli-embedded > :nth-child(n+7) { animation-delay: 120ms; }
 
-/* ── 8. 独立窗口（群公告/状态/资料卡）内容入场 ── */
-body:not([data-liuli-scope="main"]):not([data-liuli-scope="boot"]) #app > *:not(.app-border) {
-  animation: liuli-fade-in 240ms ease both;
+/* ── 8. 独立窗口（群公告/状态/资料卡）内容入场 ──
+ * ⚠️ 语音/视频通话窗口（#/av）必须排除（#49，2026-11-08 实测）：
+ * 通话窗口的成员画面和 QQ 的原生 <embed> 视频层一起合成，#app 的子元素只要带着
+ * 「fill: both 的透明度动画」，Chromium 就会把它当成透明度效果节点 / backdrop root，
+ * .video-content 整棵子树（头像、名字、边框）都不绘制，命中测试却还在 —— 和 #9 的
+ * isolation 是同一类问题。池化窗口先停在 #/blank（scope=boot），发起通话时才切到
+ * #/av（scope=aux），本规则正好在通话画面首帧挂上动画，所以每次必现。
+ * 这里改成 backwards（本文件第 18 行起就规定一律 backwards，不用 both），
+ * 并把 #/av 明确排除，通话窗口连入场动画都不要。 */
+body:not([data-liuli-scope="main"]):not([data-liuli-scope="boot"]):not([data-hash^="#/av"]) #app > *:not(.app-border) {
+  animation: liuli-fade-in 240ms ease backwards;
+}
+/* 双保险：hash 同步（400ms 轮询）晚于首次匹配时，宁可没有入场动画也不冒这个险 */
+body[data-hash^="#/av"] #app > *:not(.app-border) {
+  animation: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
