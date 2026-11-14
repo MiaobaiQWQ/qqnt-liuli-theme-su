@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
  * Kipfel · 暖粉奶油 × 鼠尾草绿
  * ------------------------------------------------------------
  * 参考图：灰玫瑰色午后、奶油纸页、鼠尾草绿毛衣、深棕线稿。
@@ -476,14 +476,14 @@ body .message-container.is-pub-account .notification__footer .q-button {
   color: var(--ll-brand) !important;
   font-size: 12px !important;
 }
-/* ── 通话窗口（#/av、群视频、非聊天独立窗口）──
- * 原来分散成七段，且互相重复；现在合并成一条统一规则：
- * 撤掉主题 #app 黑底/壁纸层/isolation，并解除 motion.css 的入场透明度。
- * 主聊天窗口有 .recent-contact，不会被最后一条命中。 */
+/* ── 通话窗口（#/av、群视频）──
+ * 只在这些通话路由/根节点上撤掉主题 #app 黑底、壁纸层和 isolation。
+ * 不要用「没有 .recent-contact 就当作通话窗口」：联系人页也没有
+ * .recent-contact，会把联系人页的 #app 底打透，直接变成白屏。
+ * motion.css 的 #49 修复已负责原始透明度动画，这里只做兜底。 */
 body[data-hash^="#/av"] #app,
 body[data-hash*="group-video"] #app,
 body:has([class*="group-video"]) #app,
-html body:not(:has(.recent-contact)):not(#ll) #app,
 body[data-hash^="#/av"] .av-container,
 body[data-hash^="#/av"] .av-container *,
 body[data-hash^="#/av"] .panel-content,
@@ -503,9 +503,7 @@ body[data-hash^="#/av"] #app::after,
 body[data-hash*="group-video"] #app::before,
 body[data-hash*="group-video"] #app::after,
 body:has([class*="group-video"]) #app::before,
-body:has([class*="group-video"]) #app::after,
-html body:not(:has(.recent-contact)):not(#ll) #app::before,
-html body:not(:has(.recent-contact)):not(#ll) #app::after {
+body:has([class*="group-video"]) #app::after {
   content: none !important;
   display: none !important;
 }
